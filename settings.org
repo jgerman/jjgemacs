@@ -4,11 +4,11 @@ maybe going back to a literate style with org will help. If this gets to be
 annoying (for instance not being able to just eval buffer) I can always try
 outline mode.
 
+This is a work in progress (but isn't every init?). I'm not sure everything works like it did in my old
+init (nor am I sure I want it to). So not everything is likely to be 100% yet.
 
 * TODOS
 ** TODO Line numbers don't show up in org mode.
-** TODO figure out set custom to get it out of this file
-** TODO check into git, with gitignore
 ** TODO better organization
 
 * Basics

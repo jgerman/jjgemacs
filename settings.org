@@ -1,0 +1,676 @@
+* Overview
+This is my init rewrite. A vanilla init.el was getting out of control and
+maybe going back to a literate style with org will help. If this gets to be
+annoying (for instance not being able to just eval buffer) I can always try
+outline mode.
+
+
+* TODOS
+** TODO Line numbers don't show up in org mode.
+** TODO figure out set custom to get it out of this file
+** TODO check into git, with gitignore
+** TODO better organization
+
+* Basics
+** OS X
+   I'm used to things a certain way. Also, unlike a lot of Emacs users I
+   prefer to use CapsLock as meta instead of Ctrl. Which I set via the
+   OSX pref pane. The original reason for that was that on mechanical
+   keyboards dropping the your hand and hitting Ctrl was easy, now it's
+   just habit.
+
+  #+begin_src emacs-lisp
+    (setq mac-option-modifier 'meta)
+    (setq mac-command-modifier 'super)
+    (setq mac-pass-command-to-system 't)
+
+    (define-key global-map [?\s-v] 'yank)
+    (define-key global-map [?\s-c] 'kill-ring-save)
+    (define-key global-map [?\s-x] 'kill-region)
+
+    (setq select-enable-clipboard t)
+  #+end_src
+** Set Up A Convenient way to get to my config file
+  #+begin_src emacs-lisp
+    (defconst *install-dir* "~/jjgemacs/")
+
+    (defun find-config ()
+      "Edit config.org"
+      (interactive)
+      (find-file (concat *install-dir* "settings.org")))
+
+    (global-set-key (kbd "C-c I") 'find-config)
+  #+end_src
+
+** Sensible Defaults
+   Eventually I need to customize this and pull the defaults I actually
+   care about into this init rather than relying on whatever version of
+   sensible defaults I used the last time I reworked this file.
+
+   For now I've checked in that version and I'll continue to use it as is:
+
+  #+begin_src emacs-lisp
+    (load-file (concat *install-dir* "sensible-defaults.el"))
+    (sensible-defaults/use-all-settings)
+    (sensible-defaults/use-all-keybindings)
+    (sensible-defaults/backup-to-temp-directory)
+  #+end_src
+
+** Some Initial UI Changes
+
+   Getting rid of some of the default ui elements that just get in the way: tool
+   bar, menu bar, scroll bar, and a mini scrollbar that appears in minibuffers.
+
+  #+begin_src emacs-lisp
+    (tool-bar-mode 0)
+    (menu-bar-mode 0)
+    (scroll-bar-mode -1)
+
+    (set-window-scroll-bars (minibuffer-window) nil nil)
+  #+end_src
+
+** Package Management
+*** Straight
+    Going to attempt to use straight this time around.
+
+  #+begin_src emacs-lisp
+    (defvar bootstrap-version)
+    (let ((bootstrap-file
+	   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	  (bootstrap-version 5))
+      (unless (file-exists-p bootstrap-file)
+	(with-current-buffer
+	    (url-retrieve-synchronously
+	     "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	     'silent 'inhibit-cookies)
+	  (goto-char (point-max))
+	  (eval-print-last-sexp)))
+      (load bootstrap-file nil 'nomessage))
+  #+end_src
+
+  Integrate with use-package
+
+  #+begin_src emacs-lisp
+    (straight-use-package 'use-package)
+  #+end_src
+
+** Look and feel
+   Pull in doom themes to use the bold, italic, and doom-vibrant.
+
+  #+begin_src emacs-lisp
+    (use-package doom-themes
+      :straight t
+      :config
+      (progn
+	(setq doom-themes-enable-bold t
+	      doom-themes-enable-italic t)
+	(load-theme 'doom-vibrant t)))
+  #+end_src
+
+  hl-line highlights the line at current point
+
+  #+begin_src emacs-lisp
+    (use-package hl-line
+      :straight t
+      :config
+      (global-hl-line-mode))
+  #+end_src
+
+  Rainbow delimeters, always.
+
+  #+begin_src emacs-lisp
+    (use-package rainbow-delimiters
+      :straight t)
+  #+end_src
+** All the icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons
+    :straight t)
+#+end_src
+** Projectile
+#+begin_src emacs-lisp
+  (use-package projectile
+    :straight  t
+    :config
+    (projectile-global-mode)
+    (setq projectile-enable-caching t))
+#+end_src
+
+Some additional bindings.
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c p p") #'projectile-switch-project)
+  (global-set-key (kbd "C-c p f") #'projectile-find-file)
+  (global-set-key (kbd "C-c p t") #'projectile-toggle-between-implementation-and-test)
+#+end_src
+** Search
+ag for searching
+
+Make sure The [[https://github.com/ggreer/the_silver_searcher][Silver Searcher]] is installed.
+#+begin_src emacs-lisp
+  (use-package ag
+    :straight t
+    :commands (ag ag-regexp ag-project))
+#+end_src
+
+Binding to use ag for project grep.
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-c p s g") #'ag-project)
+#+end_src
+** In Buffer Completion
+Company mode for completions.
+#+begin_src emacs-lisp
+  (use-package company
+    :straight t)
+  (global-company-mode)
+#+end_src
+
+*** TODO slime company mode
+** Emacs Completion Framework
+I'm still using Helm though another stab at Ivy could be in the near future.
+#+begin_src emacs-lisp
+  (defun helm-hide-minibuffer-maybe ()
+    (when (with-helm-buffer helm-echo-input-in-header-line)
+      (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
+        (overlay-put ov 'window (selected-window))
+        (overlay-put ov 'face (let ((bg-color (face-background 'default nil)))
+                                `(:background ,bg-color :foreground ,bg-color)))
+        (setq-local cursor-type nil))))
+
+  (use-package helm
+    :straight t
+    :bind (("M-x" . helm-M-x)
+           ("C-x C-f" . helm-find-files)
+           ("C-x f" . helm-recentf)
+           ("M-y" . helm-show-kill-ring)
+           ("C-x b" . helm-buffers-list))
+    :bind (:map helm-map
+                ("M-i" . helm-previous-line)
+                ("M-k" . helm-next-line)
+                ("M-I" . helm-previous-page)
+                ("M-K" . helm-next-page)
+                ("M-h" . helm-beginning-of-buffer)
+                ("M-H" . helm-end-of-buffer)
+                ("TAB" . helm-execute-persistent-action)
+                ("<tab>" . helm-execute-persistent-action)
+                ("C-z" . helm-select-action))
+    :config (progn
+              (setq helm-buffers-fuzzy-matching t)
+              (setq helm-echo-input-in-header-line t)
+              (add-hook 'helm-minibuffer-set-up-hook 'helm-hide-minibuffer-maybe)
+              (helm-mode 1)))
+
+  (use-package helm-descbinds
+    :straight t
+    :bind ("C-h b" . helm-descbinds))
+
+  (use-package helm-swoop
+    :straight t
+    :bind (("M-m" . helm-swoop)
+           ("M-M" . helm-swoop-back-to-last-point))
+    :init
+    (bind-key "M-m" 'helm-swoop-from-isearch isearch-mode-map))
+
+  (use-package helm-ag
+    :straight helm-ag
+    :bind ("M-p" . helm-projectile-ag)
+    :commands (helm-ag helm-projectile-ag)
+    :init (setq helm-ag-insert-at-point 'symbol
+                helm-ag-command-option "--path-to-ignore ~/.agignore"))
+
+   (use-package helm-company
+     :straight t)
+
+  (use-package helm-projectile
+    :straight t
+    :config
+    (helm-projectile-on))
+#+end_src
+** Dashboard
+I don't really end up using the dashboard, but I'm going to keep it for now.
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :straight t
+    :config
+    (dashboard-setup-startup-hook)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-items '((recents . 5)
+                            (projects . 10)
+                            (bookmarks . 5))))
+#+end_src
+** Key Chord mode
+Key chord lets me define quick key presses to call functions. This just pulls in
+the package, there will be a `key-chord-define-global` in the appropriate
+sections.
+
+#+begin_src emacs-lisp
+  (use-package key-chord
+    :straight t
+    :config (key-chord-mode 1))
+#+end_src
+** Popwin
+Popwin handles the annoying pop up buffers.
+#+begin_src emacs-lisp
+  (use-package popwin
+    :straight t
+    :config
+    (setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action))))
+#+end_src
+** Modeline
+*** Doom modeline
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :straight t
+    :hook (after-init . doom-modeline-mode)
+    :init
+    (setq doom-modeline-minor-modes (featurep 'minions)))
+#+end_src
+*** Minions
+Provides a dropdown menu in the modeline.
+#+begin_src emacs-lisp
+  (use-package minions
+    :straight t
+    :config (minions-mode 1))
+#+end_src
+** Misc
+A bunch of stuff that was sitting around loose in my old init. I should review
+these to see what should stay and what shouldn't.
+
+#+begin_src emacs-lisp
+  (save-place-mode 1)
+  (set-default 'truncate-lines 1)
+  (setq ring-bell-function 'ignore)
+  (winner-mode t)
+  (blink-cursor-mode -1)
+
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (setq fci-rule-column 100)
+#+end_src
+
+*** Paren mode with better highlighting
+I'm not sure this is even strictly necessary but since it was in the old init
+I'll keep it.
+#+begin_src emacs-lisp
+  (require 'paren)
+  ;;(set-face-background 'show-paren-match "#aaaaaa")
+  (set-face-foreground 'show-paren-match "#f54949")
+  (set-face-attribute 'show-paren-match nil :weight 'extra-bold)
+#+end_src
+
+*** Backup and Save Management
+Why did I do this? I don't know, but I don't want to get rid of it until I
+remember.
+#+begin_src emacs-lisp
+  (setq backup-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+        `((".*", temporary-file-directory t)))
+#+end_src
+* General Tools
+** Restclient Mode
+*** TODO Double check that this works and that the jq portion works now that I've moved it over.
+
+Can't live without restclient mode, way too useful.
+
+#+begin_src emacs-lisp
+  (use-package restclient
+    :straight (restclient :type git :host github :repo "pashky/restclient.el"))
+#+end_src
+
+Restclient jq doesn't come with the package in melpa so we need a separate recipe for that.
+
+#+begin_src emacs-lisp
+  (use-package restclient-jq
+    :straight (restclient-jq :type git :host github :repo "pashky/restclient.el"))
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.restclient\\'" . restclient-mode))
+#+end_src
+** Ace Window
+Window switching made easy via Ace Window.
+
+#+begin_src emacs-lisp
+  (use-package ace-window
+    :straight t)
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+  (key-chord-define-global "ww" 'ace-select-window)
+#+end_src
+** Org Mode
+
+   First things first, require org tempo to get the easy templates back. This
+   enables stuff like '<s tab' to create source blocks.
+
+  #+begin_src emacs-lisp
+    (require 'org-tempo)
+  #+end_src
+
+  Org bullets please.
+  #+begin_src emacs-lisp
+    (use-package org-bullets
+      :straight t
+      :config
+      (add-hook 'org-mode-hook #'org-bullets-mode))
+  #+end_src
+
+  #+begin_src emacs-lisp
+    (add-hook 'org-mode-hook 'org-indent-mode)
+  #+end_src
+
+  Org Babel setup. I haven't checked that all these work when moving to this new
+  init. Also that ob-restclient load can probably be handle better.
+
+  #+begin_src emacs-lisp
+
+    (use-package ob-go
+    :straight t)
+      ;; TODO TEMPORARY I need a solution for managing non-package elisp files
+    ;; this requires manually putting the restclient code in the search path
+    ;; TODO this can probably be a gitsubmodule
+    (load-file (concat *install-dir* "ob-restclient.el"))
+    (require 'ob-restclient)
+    (require 'ob-go)
+    (require 'ob-clojure)
+    (require 'ob-js)
+    (require 'ob-groovy)
+
+    (with-eval-after-load 'org
+      (org-babel-do-load-languages 'org-babel-load-languages
+                                                           '((shell		.	t)
+                                                             (lisp		.	t)
+                                                             (clojure	.	t)
+                                                             (sql		.	t)
+                                                             (python	.	t)
+                                                             (go		.	t)
+                                                             (js		.	t)
+                                                             (restclient	.	t)
+                                                             (groovy        .       t))))
+
+    (setq org-babel-clojure-backend 'cider)
+
+  #+end_src
+
+*** Logging done in org mode
+#+begin_src emacs-lisp
+  (setq org-log-done 'time)
+#+end_src
+
+** Magit
+
+#+begin_src emacs-lisp
+  (use-package magit
+    :straight t
+    :bind (("C-x g" . magit-status)))
+#+end_src
+** Git Gutter
+#+begin_src emacs-lisp
+  (use-package git-gutter+
+    :straight t
+    :init (global-git-gutter+-mode))
+#+end_src
+** Exec path from shell
+Use the system env variables in Emacs.
+
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :straight t
+    :config
+    (when (memq window-system '(mac ns x))
+      (exec-path-from-shell-initialize)))
+#+end_src
+
+** Which Key
+Gives you that pop up showing completions for partially entered commands.
+#+begin_src emacs-lisp
+  (use-package which-key
+   :straight t)
+  (which-key-mode)
+  (which-key-setup-minibuffer)
+#+end_src
+
+** Avy
+Jump around the buffer by key press.
+
+#+begin_src emacs-lisp
+  (use-package avy
+    :straight t
+    :bind (("C-'" . avy-goto-char-timer)
+           ("C-:" . avy-goto-line)))
+
+  (key-chord-define-global "sf" 'avy-goto-char-2)
+#+end_src
+** Midnight Mode
+Runs the CleanBufferList but can run arbitrary code.
+#+begin_src emacs-lisp
+  (require 'midnight)
+  (midnight-delay-set 'midnight-delay "12:00am")
+#+end_src
+** YA Snippet
+I included ya snippet in my last config, but never really dug in. Keeping it
+because I'm pretty sure it'll be useful.
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :straight t
+    :config
+    (yas-global-mode 1))
+#+end_src
+** Deft
+Not sure I want to use this anymore but I'm going to keep it for now.
+#+begin_src emacs-lisp
+  (use-package deft
+    :straight t
+    :config
+    (setq deft-directory "~/notes")
+    (setq def-recursive t)
+    (setq deft-auto-save-interval 300.0)
+    (setq deft-org-mode-title-prefix t)
+    (setq deft-use-filename-as-title t)
+    (setq deft-default-extension "org"))
+#+end_src
+** Ox Hugo
+I was using this to manage my blog, which still exists, but since I didn't take
+good notes on how I ran it I need to come back to this and make sure everything
+still works.
+#+begin_src emacs-lisp
+  (use-package ox-hugo
+    :straight t
+    :after ox)
+#+end_src
+** How Do You
+This is supposed to help you search across the various SO type sites to get
+answers. I should use it more or delete it.
+#+begin_src emacs-lisp
+  (use-package howdoyou
+    :straight t)
+#+end_src
+** Free Keys
+Shows what key bindings are open in a particular mode.
+
+#+begin_src emacs-lisp
+  (use-package free-keys
+    :straight t)
+#+end_src
+* Languages
+** General
+*** Smart Parens
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :straight t)
+
+  (require 'smartparens-config)
+#+end_src
+
+Bindings that shouldn't be global but are for now.
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-)") 'sp-forward-slurp-sexp) ;; this shouldn't be always set but for now if it gets me going
+  (global-set-key (kbd "M-s") 'sp-splice-sexp)
+#+end_src
+*** JSON
+Extends the built in javascript mode iirc.
+#+begin_src emacs-lisp
+  (use-package json-mode
+    :straight t)
+#+end_src
+*** Yaml
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :straight t
+    :mode ("\\.ya?ml\\'" . yaml-mode))
+#+end_src
+*** Markdown
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :straight t
+    :mode ("\\.md\\'" . markdown-mode))
+#+end_src
+** Lisp
+*** Slime
+#+begin_src emacs-lisp
+  (use-package slime
+    :straight t
+    :config
+    (setq inferior-lisp-program "/usr/local/bin/sbcl")
+    ;;(setq slime-contribs '(slime-fancy slime-asdf)) ;;taking out temporarily for clisp
+    (setq slime-lisp-implementations
+          '((sbcl ("/usr/local/bin/sbcl"))
+            (clisp ("/usr/local/bin/clisp")))))
+#+end_src
+
+*** Lisp hooks
+#+begin_src emacs-lisp
+  (add-hook 'lisp-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'lisp-mode-hook #'smartparens-mode)
+  (add-hook 'lisp-mode-hook #'turn-on-smartparens-strict-mode)
+  (add-hook 'lisp-mode-hook #'eldoc-mode)
+  (add-hook 'lisp-mode-hook #'subword-mode)
+#+end_src
+*** Slime Hooks
+#+begin_src emacs-lisp
+  (add-hook 'slime-repl-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'slime-repl-mode-hook #'smartparens-mode)
+  (add-hook 'slime-repl-mode-hook #'turn-on-smartparens-strict-mode)
+#+end_src
+** Elisp
+*** Hooks
+#+begin_src emacs-lisp
+  (add-hook 'emacs-lisp-mode-hook #'smartparens-mode)
+  (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'emacs-lisp-mode-hook #'turn-on-smartparens-strict-mode)
+  (add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
+  (add-hook 'emacs-lisp-mode-hook #'subword-mode)
+#+end_src
+** Clojure
+Clojure mode.
+#+begin_src emacs-lisp
+  (use-package clojure-mode
+    :straight t
+    :config
+    (add-hook 'clojure-mode-hook #'smartparens-mode)
+    (add-hook 'clojure-mode-hook #'subword-mode)
+    (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+    (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
+    (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
+#+end_src
+
+Gotta have cider.
+#+begin_src emacs-lisp
+  (use-package cider
+    :straight t
+    :config
+    (setq nrepl-log-messages t)
+  (add-hook 'cider-mode-hook #'eldoc-mode)
+  (add-hook 'cider-repl-mode-hook #'eldoc-mode)
+  (add-hook 'cider-repl-mode-hook #'smartparens-mode)
+  (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
+#+end_src
+
+clj-refactor
+#+begin_src emacs-lisp
+  (use-package clj-refactor
+    :straight t)
+
+  (defun my-clj-refactor-hook ()
+    (clj-refactor-mode 1)
+    (yas-minor-mode 1)
+    (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+  (add-hook 'clojure-mode-hook #'my-clj-refactor-hook)
+#+end_src
+
+I'm leaving out flycheck for now, I used to use joker but I'm not sure it's
+necessary.
+** Groovy
+I haven't used Groovy since waaaaay back other than in Jenkinsfiles.
+*** Groovy Mode
+#+begin_src emacs-lisp
+  (use-package groovy-mode
+    :straight t
+    :config
+    (add-to-list 'auto-mode-alist '("Jenkinsfile" . groovy-mode)))
+#+end_src
+** Golang
+*** Imported from original init.. untested
+#+begin_src emacs-lisp
+  (defun my-go-mode-hook ()
+    ;; Call Gofmt before saving
+    (add-hook 'before-save-hook 'gofmt-before-save)
+     (if (not (string-match "go" compile-command))
+        (set (make-local-variable 'compile-command)
+             "go build -v && go test -v && go vet")))
+
+  (defun auto-complete-for-go ()
+    (auto-complete-mode 1))
+
+  (use-package go-mode
+    :straight t
+    :config
+    (add-hook 'go-mode-hook 'my-go-mode-hook)
+    (add-hook 'go-mode-hook 'auto-complete-for-go))
+#+end_src
+
+* Misc Functions
+** xml format function (stolen from Chris Gore)
+#+begin_src emacs-lisp
+  (defun xml-format ()
+    (interactive)
+    (save-excursion
+      (shell-command-on-region
+       (mark) (point)
+       "xmllint --format --encode utf-8 -"
+       (buffer-name) t)))
+#+end_src
+
+** decode a jwt token
+#+begin_src emacs-lisp
+  (defun decode-jwt ()
+    (interactive)
+    (let ((new-buff (get-buffer-create "decoded-jwt.js")))
+      (save-excursion
+        (shell-command-on-region
+         (mark) (point)
+         "jq -R 'split(\".\") | .[1] | @base64d | fromjson'"
+         new-buff)
+        (with-current-buffer new-buff
+          (funcall 'javascript-mode))
+        (switch-to-buffer new-buff))))
+#+end_src
+
+** open multiple eshell buffers
+#+begin_src emacs-lisp
+  ;; taken from here: https://www.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
+  (defun eshell-new ()
+    "Open a new instance of eshell."
+    (interactive)
+    (eshell 'N))
+#+end_src
+
+* Keep Custom out of this file
+This should keep anything handled by customize out of this file.
+#+begin_src emacs-lisp
+  (setq custom-file (concat *install-dir* "custom.el"))
+  (load custom-file)
+#+end_src

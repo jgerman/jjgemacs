@@ -506,6 +506,11 @@ Shows what key bindings are open in a particular mode.
   (use-package free-keys
     :straight t)
 #+end_src
+** Docker
+#+begin_src emacs-lisp
+  use-package dockerfile-mode
+    :straight t
+#+end_src
 * Languages
 ** General
 *** Smart Parens
@@ -538,6 +543,15 @@ Extends the built in javascript mode iirc.
   (use-package markdown-mode
     :straight t
     :mode ("\\.md\\'" . markdown-mode))
+#+end_src
+*** LSP Mode
+Installing this to experiment with Kotlin but likely to use elsewhere.
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :straight t
+    :init (setq lsp-keymap-prefix "C-c l")
+    :config (lsp-enable-which-key-integration t))
 #+end_src
 ** Lisp
 *** Slime
@@ -645,6 +659,24 @@ I haven't used Groovy since waaaaay back other than in Jenkinsfiles.
     :config
     (add-hook 'go-mode-hook 'my-go-mode-hook)
     (add-hook 'go-mode-hook 'auto-complete-for-go))
+#+end_src
+
+** Kotlin
+Experimental, not sure if Kotlin is worth taking a run at in emacs or not with
+IntelliJ having first class support :/.
+#+begin_src emacs-lisp
+  (use-package kotlin-mode
+    :straight t)
+#+end_src
+** Typescript
+Require's lsp server for typescript.
+npm install -g typescript-language-server
+#+begin_src emacs-lisp
+  (use-package typescript-mode
+    :mwwode "\\.ts\\'"
+    :straight t
+    :hook (typescript-mode . lsp-deferred)
+    :config (setq typescript-indent-level 2))
 #+end_src
 
 * Misc Functions

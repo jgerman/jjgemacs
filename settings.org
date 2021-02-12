@@ -685,7 +685,7 @@ Require's lsp server for typescript.
 npm install -g typescript-language-server
 #+begin_src emacs-lisp
   (use-package typescript-mode
-    :mwwode "\\.ts\\'"
+    :mode "\\.tsx?\\'"
     :straight t
     :hook (typescript-mode . lsp-deferred)
     :config (setq typescript-indent-level 2))

@@ -508,8 +508,15 @@ Shows what key bindings are open in a particular mode.
 #+end_src
 ** Docker
 #+begin_src emacs-lisp
-  use-package dockerfile-mode
+  (use-package dockerfile-mode
     :straight t
+    :mode "\\Dockerfile*//")
+#+end_src
+** Dumb Jump
+Let's give dumb jump a try again.
+#+begin_src emacs-lisp
+  (use-package dumb-jump
+    :straight t)
 #+end_src
 * Languages
 ** General
@@ -552,6 +559,11 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
     :straight t
     :init (setq lsp-keymap-prefix "C-c l")
     :config (lsp-enable-which-key-integration t))
+#+end_src
+*** GraphQL
+#+begin_src emacs-lisp
+  (use-package graphql-mode
+    :straight t)
 #+end_src
 ** Lisp
 *** Slime

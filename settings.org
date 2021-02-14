@@ -711,6 +711,21 @@ Parse ansi escape codes:
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
 
+Add a repl for typescript.
+
+#+begin_src emacs-lisp
+  (use-package ts-comint
+    :straight t
+    :init
+    (add-hook 'typescript-mode-hook
+              (lambda ()
+                (local-set-key (kbd "C-x C-e") 'ts-send-last-sexp)
+                (local-set-key (kbd "C-M-x") 'ts-send-last-sexp-and-go)
+                (local-set-key (kbd "C-c b") 'ts-send-buffer)
+                (local-set-key (kbd "C-c C-b") 'ts-send-buffer-and-go)
+                (local-set-key (kbd "C-c l") 'ts-load-file-and-go))))
+#+end_src
+
 * Misc Functions
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp

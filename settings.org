@@ -699,6 +699,17 @@ npm install -g typescript-language-server
     :config (setq typescript-indent-level 2))
 #+end_src
 
+Parse ansi escape codes:
+
+#+begin_src emacs-lisp
+  (require 'ansi-color)
+  (defun colorize-compilation-buffer ()
+    (ansi-color-apply-on-region compilation-filter-start (point-max)))
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+#+end_src
+
+#+RESULTS:
+
 * Misc Functions
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp

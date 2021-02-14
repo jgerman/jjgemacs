@@ -518,6 +518,12 @@ Let's give dumb jump a try again.
   (use-package dumb-jump
     :straight t)
 #+end_src
+** UUID
+I'm probably going to want to implement these myself at some point but for now leveraging a lib on github will work:
+#+begin_src emacs-lisp
+  (use-package uuidgen
+    :straight (uuidgen :type git :host github :repo "kanru/uuidgen-el"))
+#+end_src
 * Languages
 ** General
 *** Smart Parens

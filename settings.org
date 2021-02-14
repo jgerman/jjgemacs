@@ -708,8 +708,6 @@ Parse ansi escape codes:
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
 
-#+RESULTS:
-
 * Misc Functions
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp

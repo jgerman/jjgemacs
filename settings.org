@@ -573,6 +573,17 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
   (use-package graphql-mode
     :straight t)
 #+end_src
+*** repl-toggle
+Clojure has this built into Cider I guess I'll want it elsewhere. We'll set it
+up for elisp since it's built in here to allow us to just push to the alist to
+add other languages.
+#+begin_src emacs-lisp
+  (use-package repl-toggle
+    :straight (repl-toggle :type git :host github :repo "tomterl/repl-toggle")
+    :init
+    (setq rtog/fullscreen t)
+    (setq rtog/mode-repl-alist '((emacs-lisp-mode . ielm))))
+#+end_src
 ** Lisp
 *** Slime
 #+begin_src emacs-lisp
@@ -692,14 +703,17 @@ IntelliJ having first class support :/.
 Require's lsp server for typescript.
 npm install -g typescript-language-server
 #+begin_src emacs-lisp
-  (use-package typescript-mode
-    :mode "\\.tsx?\\'"
-    :straight t
-    :hook (typescript-mode . lsp-deferred) ;; does this work correctly?
-    :config (setq typescript-indent-level 2)
-    :init
-    (add-hook 'typerscript-mode-hook #'smartparens-mode)
-    (add-hook 'typescript-mode-hook  #'turn-on-smartparens-strict-mode))
+    (use-package typescript-mode
+      :mode "\\.tsx?\\'"
+      :straight t
+      :hook (typescript-mode . lsp-deferred) ;; does this work correctly?
+      :config (setq typescript-indent-level 2)
+      :init
+      (add-hook 'typerscript-mode-hook #'smartparens-mode)
+      (add-hook 'typescript-mode-hook  #'turn-on-smartparens-strict-mode)
+      (add-hook 'typescript-mode-hook (lambda ()
+                                        (local-set-key (kbd "C-c C-z") 'rtog/goto-buffer-fun)))
+  )
 #+end_src
 
 Parse ansi escape codes:
@@ -711,7 +725,11 @@ Parse ansi escape codes:
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
 
-Add a repl for typescript.
+Pop to repl, depends on the pop-to-repl package set up above.
+
+#+begin_src emacs-lisp
+  (push '(typescript-mode . run-ts) rtog/mode-repl-alist)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package ts-comint

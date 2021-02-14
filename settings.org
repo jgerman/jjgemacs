@@ -519,7 +519,9 @@ Let's give dumb jump a try again.
     :straight t)
 #+end_src
 ** UUID
-I'm probably going to want to implement these myself at some point but for now leveraging a lib on github will work:
+I'm probably going to want to implement these myself at some point but for now
+leveraging a lib on github will work. Provides a variety of functions but I'm
+grabbing it mainly just to insert a random uuid into a buffer.
 #+begin_src emacs-lisp
   (use-package uuidgen
     :straight (uuidgen :type git :host github :repo "kanru/uuidgen-el"))

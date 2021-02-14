@@ -695,8 +695,11 @@ npm install -g typescript-language-server
   (use-package typescript-mode
     :mode "\\.tsx?\\'"
     :straight t
-    :hook (typescript-mode . lsp-deferred)
-    :config (setq typescript-indent-level 2))
+    :hook (typescript-mode . lsp-deferred) ;; does this work correctly?
+    :config (setq typescript-indent-level 2)
+    :init
+    (add-hook 'typerscript-mode-hook #'smartparens-mode)
+    (add-hook 'typescript-mode-hook  #'turn-on-smartparens-strict-mode))
 #+end_src
 
 Parse ansi escape codes:

@@ -272,6 +272,31 @@ Provides a dropdown menu in the modeline.
     :straight t
     :config (minions-mode 1))
 #+end_src
+** Journal
+I keep starting and stopping journals, but it's just a good damn idea for work
+so trying again.
+#+begin_src emacs-lisp
+  (defun get-journal-file-yesterday ()
+    "Gets filename for yesterday's journal entry."
+    (let* ((yesterday (time-subtract (current-time) (days-to-time 1)))
+           (daily-name (format-time-string "%Y%m%d" yesterday)))
+      (expand-file-name (concat org-journal-dir daily-name))))
+
+  (defun journal-file-yesterday ()
+    "Creates and load a file based on yesterday's date."
+    (interactive)
+    (find-file (get-journal-file-yesterday)))
+
+  (use-package org-journal
+    :straight t
+    :bind (("C-c t" . org-journal-new-entry)
+           ("C-c y" . journal-file-yesterday))
+    :custom
+    (org-journal-dir "~/.journal/")
+    (org-journal-file-format "%Y%m%d")
+    (org-journal-date-format "%e %b %Y (%A)")
+    (org-journal-time-format ""))
+#+end_src
 ** Misc
 A bunch of stuff that was sitting around loose in my old init. I should review
 these to see what should stay and what shouldn't.
@@ -306,10 +331,12 @@ remember.
   (setq auto-save-file-name-transforms
         `((".*", temporary-file-directory t)))
 #+end_src
+*** Don't use tabs
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode nil)
+#+end_src
 * General Tools
 ** Restclient Mode
-*** TODO Double check that this works and that the jq portion works now that I've moved it over.
-
 Can't live without restclient mode, way too useful.
 
 #+begin_src emacs-lisp
@@ -362,18 +389,24 @@ Window switching made easy via Ace Window.
   init. Also that ob-restclient load can probably be handle better.
 
   #+begin_src emacs-lisp
+    (use-package ob-kotlin
+      :straight (ob-kotlin :type git :host github :repo "zweifisch/ob-kotlin"))
+  #+end_src
+
+  #+begin_src emacs-lisp
 
     (use-package ob-go
     :straight t)
       ;; TODO TEMPORARY I need a solution for managing non-package elisp files
     ;; this requires manually putting the restclient code in the search path
-    ;; TODO this can probably be a gitsubmodule
+    ;; TODO this can probably be a gitsubmodule ... hey change this to use straight
     (load-file (concat *install-dir* "ob-restclient.el"))
     (require 'ob-restclient)
     (require 'ob-go)
     (require 'ob-clojure)
     (require 'ob-js)
     (require 'ob-groovy)
+    (require 'ob-kotlin)
 
     (with-eval-after-load 'org
       (org-babel-do-load-languages 'org-babel-load-languages
@@ -383,6 +416,8 @@ Window switching made easy via Ace Window.
                                                              (sql		.	t)
                                                              (python	.	t)
                                                              (go		.	t)
+                                                             (sql           .       t)
+                                                             (kotlin        .       r)
                                                              (js		.	t)
                                                              (restclient	.	t)
                                                              (groovy        .       t))))
@@ -396,6 +431,11 @@ Window switching made easy via Ace Window.
   (setq org-log-done 'time)
 #+end_src
 
+*** Ob async
+#+begin_src emacs-lisp
+  (use-package ob-async
+    :straight (ob-async :type git :host github :repo "astahlman/ob-async"))
+#+end_src
 ** Magit
 #+begin_src emacs-lisp
   (use-package magit
@@ -526,6 +566,7 @@ grabbing it mainly just to insert a random uuid into a buffer.
   (use-package uuidgen
     :straight (uuidgen :type git :host github :repo "kanru/uuidgen-el"))
 #+end_src
+
 * Languages
 ** General
 *** Smart Parens
@@ -573,6 +614,16 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
   (use-package graphql-mode
     :straight t)
 #+end_src
+
+#+RESULTS:
+
+Going to pull in a library I found GraphQL.el. This should let me more easily
+build queries for use in resclient mode, or better yet in an org babel block.
+
+#+begin_src emacs-lisp
+  (use-package graphql
+    :straight (graphql :type git :host github :repo "vermiculus/graphql.el"))
+#+end_src
 *** repl-toggle
 Clojure has this built into Cider I guess I'll want it elsewhere. We'll set it
 up for elisp since it's built in here to allow us to just push to the alist to
@@ -581,11 +632,10 @@ add other languages.
   (use-package repl-toggle
     :straight (repl-toggle :type git :host github :repo "tomterl/repl-toggle")
     :init
-    (setq rtog/fullscreen t)
+    (setq rtog/fullscreen nil)
     (setq rtog/mode-repl-alist '((emacs-lisp-mode . ielm))))
 #+end_src
-** Lisp
-*** Slime
+** Lisp*** Slime
 #+begin_src emacs-lisp
   (use-package slime
     :straight t
@@ -610,6 +660,11 @@ add other languages.
   (add-hook 'slime-repl-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'slime-repl-mode-hook #'smartparens-mode)
   (add-hook 'slime-repl-mode-hook #'turn-on-smartparens-strict-mode)
+#+end_src
+** Scheme
+#+begin_src emacs-lisp
+  (use-package geiser
+    :straight t)
 #+end_src
 ** Elisp
 *** Hooks
@@ -778,6 +833,36 @@ Pop to repl, depends on the pop-to-repl package set up above.
     "Open a new instance of eshell."
     (interactive)
     (eshell 'N))
+#+end_src
+
+** Reading .env files
+My current company makes use of .env files so having some functions to read them
+in easily is useful. I'll come back and add code to toss out blank lines and
+comment lines (starting with '#' later). This is my quick and dirty solution to
+get existing env file data.
+
+If this gets any more complicated I'll move it into its own package.
+
+#+begin_src emacs-lisp
+  (defun read-lines (path)
+    (with-temp-buffer
+      (insert-file-contents path)
+      (split-string (buffer-string) "\n" t)))
+
+  (defun env-var->alist-pair (string)
+    "Takes a string of the form `var=val` and turns it into an
+    alist pair''"
+    (split-string string "=" t))
+
+  (defun read-env-from-dotenv (dotenv-file var)
+    "Returns a specific var from a .env file."
+    (car
+     (cdr
+      (assoc var
+             (mapcar (lambda (x)
+                       (env-var->alist-pair x))
+                     (read-lines dotenv-file))))))
+
 #+end_src
 
 * Keep Custom out of this file

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: jiraticket
+# key: jiraticket
+# --
+[[https://tradeswell.atlassian.net/browse/${1}][$1]] $0

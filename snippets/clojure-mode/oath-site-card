@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: oath-site-card
+# key: oath-site
+# --
+{:id $1
+ :name $2
+ :card-capacity $3
+ :reveal-prompt nil
+ :relic-recover-cost nil
+ :power nil}
+ $0

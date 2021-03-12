@@ -417,7 +417,8 @@ Window switching made easy via Ace Window.
                                                              (python	.	t)
                                                              (go		.	t)
                                                              (sql           .       t)
-                                                             (kotlin        .       r)
+                                                             (kotlin        .       t)
+                                                             (scheme        .       t)
                                                              (js		.	t)
                                                              (restclient	.	t)
                                                              (groovy        .       t))))
@@ -425,6 +426,9 @@ Window switching made easy via Ace Window.
     (setq org-babel-clojure-backend 'cider)
 
   #+end_src
+
+  #+RESULTS:
+  : cider
 
 *** Logging done in org mode
 #+begin_src emacs-lisp
@@ -635,7 +639,8 @@ add other languages.
     (setq rtog/fullscreen nil)
     (setq rtog/mode-repl-alist '((emacs-lisp-mode . ielm))))
 #+end_src
-** Lisp*** Slime
+** Lisp
+*** Slime
 #+begin_src emacs-lisp
   (use-package slime
     :straight t
@@ -664,8 +669,14 @@ add other languages.
 ** Scheme
 #+begin_src emacs-lisp
   (use-package geiser
-    :straight t)
+    :straight t
+    :custom
+      (geiser-active-implementations '(guile))
+      (geiser-set-default-implementation 'guile))
 #+end_src
+
+#+RESULTS:
+
 ** Elisp
 *** Hooks
 #+begin_src emacs-lisp

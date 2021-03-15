@@ -55,6 +55,20 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
     (sensible-defaults/use-all-keybindings)
     (sensible-defaults/backup-to-temp-directory)
   #+end_src
+** Font
+#+begin_src emacs-lisp
+  ;; fonts I'm playing with:
+  ;; iosevka
+  ;; Source Code Pro
+  ;; Hack (150)
+  ;; Fantasque Sans Mono
+  (defvar *my-font* "")
+  (setq *my-font* "Hack")
+  (set-face-attribute 'default nil :font *my-font* :height 150)
+  (set-frame-font *my-font* nil t)
+#+end_src
+
+#+RESULTS:
 
 ** Some Initial UI Changes
 
@@ -335,6 +349,12 @@ remember.
 #+begin_src emacs-lisp
   (setq-default indent-tabs-mode nil)
 #+end_src
+*** Expand Region
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :straight t
+    :bind ("M-@" . er/expand-region))
+#+end_src
 * General Tools
 ** Restclient Mode
 Can't live without restclient mode, way too useful.
@@ -362,8 +382,12 @@ Window switching made easy via Ace Window.
     :straight t)
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 
-  (key-chord-define-global "ww" 'ace-select-window)
+  (key-chord-define-global "qq" 'ace-select-window)
 #+end_src
+
+#+RESULTS:
+: ace-select-window
+
 ** Org Mode
 
    First things first, require org tempo to get the easy templates back. This
@@ -394,6 +418,10 @@ Window switching made easy via Ace Window.
   #+end_src
 
   #+begin_src emacs-lisp
+    (use-package ob-typescript
+      :straight t)
+  #+end_src
+  #+begin_src emacs-lisp
 
     (use-package ob-go
     :straight t)
@@ -407,6 +435,7 @@ Window switching made easy via Ace Window.
     (require 'ob-js)
     (require 'ob-groovy)
     (require 'ob-kotlin)
+    (require 'ob-typescript)
 
     (with-eval-after-load 'org
       (org-babel-do-load-languages 'org-babel-load-languages
@@ -418,6 +447,7 @@ Window switching made easy via Ace Window.
                                                              (go		.	t)
                                                              (sql           .       t)
                                                              (kotlin        .       t)
+                                                             (typescript    .       t)
                                                              (scheme        .       t)
                                                              (js		.	t)
                                                              (restclient	.	t)
@@ -783,7 +813,7 @@ npm install -g typescript-language-server
 #+end_src
 
 Parse ansi escape codes:
-
+<
 #+begin_src emacs-lisp
   (require 'ansi-color)
   (defun colorize-compilation-buffer ()
@@ -839,7 +869,8 @@ Pop to repl, depends on the pop-to-repl package set up above.
 
 ** open multiple eshell buffers
 #+begin_src emacs-lisp
-  ;; taken from here: https://www.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
+  ;; taken from here: https://ww
+w.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
   (defun eshell-new ()
     "Open a new instance of eshell."
     (interactive)

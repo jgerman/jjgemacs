@@ -64,7 +64,7 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
   ;; Fantasque Sans Mono
   (defvar *my-font* "")
   (setq *my-font* "Hack")
-  (set-face-attribute 'default nil :font *my-font* :height 150)
+  (set-face-attribute 'default nil :font *my-font* :height 140)
   (set-frame-font *my-font* nil t)
 #+end_src
 

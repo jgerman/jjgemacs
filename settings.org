@@ -586,6 +586,13 @@ Shows what key bindings are open in a particular mode.
     :straight t
     :mode "\\Dockerfile*//")
 #+end_src
+** Col-Highlight
+Working with yaml is a pain in the ass without this:
+
+#+begin_src emacs-lisp
+  (use-package col-highlight
+    :straight (col-highlight :type git :host github :repo "emacsmirror/col-highlight"))
+#+end_src
 ** Dumb Jump
 Let's give dumb jump a try again.
 #+begin_src emacs-lisp
@@ -701,8 +708,8 @@ add other languages.
   (use-package geiser
     :straight t
     :custom
-      (geiser-active-implementations '(guile))
-      (geiser-set-default-implementation 'guile))
+      (geiser-active-implementations '(guile mit))
+      (geiser-set-default-implementation 'mit))
 #+end_src
 
 #+RESULTS:
@@ -869,8 +876,7 @@ Pop to repl, depends on the pop-to-repl package set up above.
 
 ** open multiple eshell buffers
 #+begin_src emacs-lisp
-  ;; taken from here: https://ww
-w.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
+  ;; taken from here: https://wwvw.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
   (defun eshell-new ()
     "Open a new instance of eshell."
     (interactive)

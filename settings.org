@@ -712,7 +712,11 @@ add other languages.
       (geiser-set-default-implementation 'mit))
 #+end_src
 
-#+RESULTS:
+#+begin_src emacs-lisp
+  (add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'scheme-mode-hook #'smartparens-mode)
+  (add-hook 'scheme-mode-hook #'turn-on-smartparens-strict-mode)
+#+end_src
 
 ** Elisp
 *** Hooks
@@ -819,8 +823,12 @@ npm install -g typescript-language-server
   )
 #+end_src
 
+# TODO add raw js crap
+# nodejs-repl
+# run ts handles js and ts?
+
 Parse ansi escape codes:
-<
+
 #+begin_src emacs-lisp
   (require 'ansi-color)
   (defun colorize-compilation-buffer ()

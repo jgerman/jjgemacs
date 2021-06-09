@@ -385,6 +385,12 @@ Window switching made easy via Ace Window.
   (key-chord-define-global "qq" 'ace-select-window)
 #+end_src
 
+Try S-w for switching:
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "s-w") 'ace-select-window)
+#+end_src
+
 #+RESULTS:
 : ace-select-window
 
@@ -588,11 +594,32 @@ Shows what key bindings are open in a particular mode.
 #+end_src
 ** Col-Highlight
 Working with yaml is a pain in the ass without this:
-
+Might drop this...
 #+begin_src emacs-lisp
   (use-package col-highlight
     :straight (col-highlight :type git :host github :repo "emacsmirror/col-highlight"))
 #+end_src
+
+** Highlight indentation
+#+begin_src emacs-lisp
+    (use-package highlight-indentation
+      :straight (highlight-indentation :type git :host github :repo "antonj/Highlight-Indentation-for-Emacs")
+      :config
+      (set-face-background 'highlight-indentation-current-column-face "#60646b")
+      (set-face-background 'highlight-indentation-face "#2c2e30"))
+#+end_src
+
+** Smart Shift
+#+begin_src emacs-lisp
+  (use-package smart-shift
+    :straight (smart-shift :type git :host github :repo "hbin/smart-shift"))
+#+end_src
+** Flycheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :straight t)
+#+end_src
+
 ** Dumb Jump
 Let's give dumb jump a try again.
 #+begin_src emacs-lisp
@@ -606,6 +633,28 @@ grabbing it mainly just to insert a random uuid into a buffer.
 #+begin_src emacs-lisp
   (use-package uuidgen
     :straight (uuidgen :type git :host github :repo "kanru/uuidgen-el"))
+#+end_src
+
+** AJ Toggle
+#+begin_src emacs-lisp
+  (defun aj-toggle-fold ()
+    "Toggle fold all lines larger than indentation on current line"
+    (interactive)
+    (let ((col 1))
+      (save-excursion
+        (back-to-indentation)
+        (setq col (+ 1 (current-column)))
+        (set-selective-display
+         (if selective-display nil (or col 1))))))
+  (global-set-key [(M C i)] 'aj-toggle-fold)
+#+end_src
+** Indentation Inference
+When working with files you didn't write you might run into other indentation
+offsets, this packages is supposed to infer based on the file.
+
+#+begin_src emacs-lisp
+  (use-package dtrt-indent
+    :straight (dtrt-indent :type git :host github :repo "jscheid/dtrt-indent"))
 #+end_src
 
 * Languages
@@ -634,6 +683,14 @@ Extends the built in javascript mode iirc.
   (use-package yaml-mode
     :straight t
     :mode ("\\.ya?ml\\'" . yaml-mode))
+#+end_src
+
+Not working yet...
+#+begin_src emacs-lisp
+(add-hook 'yaml-mode-hook 'highlight-indentation-mode)
+(add-hook 'yaml-mode-hook 'highlight-indentation-current-line-mode)
+(add-hook 'yaml-mode-hook 'smart-shift-mode)
+(add-hook 'yaml-mode-hook 'flycheck-mode)
 #+end_src
 *** Markdown
 #+begin_src emacs-lisp

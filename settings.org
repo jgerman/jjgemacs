@@ -356,6 +356,17 @@ remember.
     :bind ("M-@" . er/expand-region))
 #+end_src
 * General Tools
+** Treemacs
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :straight t
+    :defer t
+    :bind
+    (:map global-map
+           ("M-0"       . treemacs-select-window)
+           ("C-x t t"   . treemacs)))
+#+end_src
+
 ** Restclient Mode
 Can't live without restclient mode, way too useful.
 
@@ -775,6 +786,21 @@ add other languages.
   (add-hook 'scheme-mode-hook #'turn-on-smartparens-strict-mode)
 #+end_src
 
+** Racket
+I'm not sure yet if I want to use racket-more or just plug racket into geiser.
+From what I've read geiser gives a more SLIME like experience (which I'm used
+to) but I'm going to take a crack and racket-mode as well.
+
+#+begin_src emacs-lisp :results silent
+  (use-package racket-mode
+    :straight t)
+#+end_src
+
+#+begin_src emacs-lisp :results silent
+  (add-hook 'racket-mode-hook #'smartparens-mode)
+  (add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
+#+end_src
 ** Elisp
 *** Hooks
 #+begin_src emacs-lisp

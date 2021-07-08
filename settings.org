@@ -938,6 +938,19 @@ Pop to repl, depends on the pop-to-repl package set up above.
                 (local-set-key (kbd "C-c l") 'ts-load-file-and-go))))
 #+end_src
 
+** Python
+
+I guess python mode comes pre-installed with emacs? Not sure whether to try an
+LSP solution or Elpy, Elply for now.
+
+#+begin_src emacs-lisp :results silent
+  (use-package elpy
+    :straight t
+    :init
+    (elpy-enable)
+    (setq elpy-rpc-python-command "python3"))
+#+end_src
+
 * Misc Functions
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp

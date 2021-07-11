@@ -56,19 +56,28 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
     (sensible-defaults/backup-to-temp-directory)
   #+end_src
 ** Font
-#+begin_src emacs-lisp
+
+   I need better font management, setting the height like this seems like a bad
+   pattern, maybe it should be in custom.el. For now though setting the font
+   based on the detected screen resolution seems like it might work.
+
+   For now checkingg the display width should be sufficient, if it's 1920 then
+   we'll use the smaller font size.
+
+#+begin_src emacs-lisp :results silent
   ;; fonts I'm playing with:
   ;; iosevka
   ;; Source Code Pro
   ;; Hack (150)
   ;; Fantasque Sans Mono
+  (defvar *my-font-size* 140)
+  (when (= (display-pixel-width) 1920)
+    (setq *my-font-size* 100))
   (defvar *my-font* "")
   (setq *my-font* "Hack")
-  (set-face-attribute 'default nil :font *my-font* :height 140)
+  (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
   (set-frame-font *my-font* nil t)
 #+end_src
-
-#+RESULTS:
 
 ** Some Initial UI Changes
 

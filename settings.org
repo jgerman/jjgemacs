@@ -396,10 +396,10 @@ Window switching made easy via Ace Window.
   (key-chord-define-global "qq" 'ace-select-window)
 #+end_src
 
-Try S-w for switching:
+Replace the normal window switch with ace-select window.
 
-#+begin_src emacs-lisp
-(global-set-key (kbd "s-w") 'ace-select-window)
+#+begin_src emacs-lisp :results silent
+(global-set-key (kbd "C-x o") 'ace-select-window)
 #+end_src
 
 #+RESULTS:

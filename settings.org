@@ -408,10 +408,12 @@ Replace the normal window switch with ace-select window.
 ** Org Mode
 
    First things first, require org tempo to get the easy templates back. This
-   enables stuff like '<s tab' to create source blocks.
+   enables stuff like '<s tab' to create source blocks. Not sure when this
+   changed so I'm going to make the check below 27.2.
 
   #+begin_src emacs-lisp
-    (require 'org-tempo)
+    (when (version<= "27.2" emacs-version)
+        (require 'org-tempo))
   #+end_src
 
   Org bullets please.
@@ -422,8 +424,11 @@ Replace the normal window switch with ace-select window.
       (add-hook 'org-mode-hook #'org-bullets-mode))
   #+end_src
 
+  Same here, when I'm on emacs <= 27.2 this doesn't work.
+
   #+begin_src emacs-lisp
-    (add-hook 'org-mode-hook 'org-indent-mode)
+    (when (version<= "27.2" emacs-version)
+        (add-hook 'org-mode-hook 'org-indent-mode))
   #+end_src
 
   Org Babel setup. I haven't checked that all these work when moving to this new

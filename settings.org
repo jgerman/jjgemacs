@@ -20,8 +20,8 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
    just habit.
 
   #+begin_src emacs-lisp
-    (setq mac-option-modifier 'meta)
-    (setq mac-command-modifier 'super)
+    (setq mac-option-modifier 'super)
+    (setq mac-command-modifier 'meta)
     (setq mac-pass-command-to-system 't)
 
     (define-key global-map [?\s-v] 'yank)

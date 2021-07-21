@@ -73,6 +73,11 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
   (defvar *my-font-size* 140)
   (when (= (display-pixel-width) 1920)
     (setq *my-font-size* 100))
+  (when (= (display-pixel-width) 3456)
+    (setq *my-font-size* 100))
+  (when (= (display-pixel-width) 3840)
+    (setq *my-font-size* 120))
+  (message (concat "Setting font to: " (number-to-string *my-font-size*)))
   (defvar *my-font* "")
   (setq *my-font* "Hack")
   (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
@@ -962,7 +967,9 @@ LSP solution or Elpy, Elply for now.
     :straight t
     :init
     (elpy-enable)
-    (setq elpy-rpc-python-command "python3"))
+    (setq elpy-rpc-python-command "python3")
+    ;;(setq elpy-rpc-virtualenv-path 'system)
+    )
 #+end_src
 
 * Misc Functions

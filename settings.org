@@ -426,7 +426,7 @@ Replace the normal window switch with ace-select window.
    changed so I'm going to make the check below 27.2.
 
   #+begin_src emacs-lisp
-    (when (version<= "27.2" emacs-version)
+    (when (version<= "27.1" emacs-version)
         (require 'org-tempo))
   #+end_src
 
@@ -441,7 +441,7 @@ Replace the normal window switch with ace-select window.
   Same here, when I'm on emacs <= 27.2 this doesn't work.
 
   #+begin_src emacs-lisp
-    (when (version<= "27.2" emacs-version)
+    (when (version<= "27.1" emacs-version)
         (add-hook 'org-mode-hook 'org-indent-mode))
   #+end_src
 
@@ -686,6 +686,14 @@ offsets, this packages is supposed to infer based on the file.
   (use-package dtrt-indent
     :straight (dtrt-indent :type git :host github :repo "jscheid/dtrt-indent"))
 #+end_src
+
+** My Github Cloning Tool
+#+begin_src emacs-lisp
+  (load (locate-user-emacs-file "github.el") nil :nomessage)
+#+end_src
+
+#+RESULTS:
+: t
 
 * Languages
 ** General

@@ -26,5 +26,9 @@
                             proj)))
     (if (file-directory-p clone-dir)
         (message "Project has already been cloned.")
-      (shell-command (concat "git clone git@github.com:" repo " " clone-dir)))))
+      (with-output-to-temp-buffer "*clone-output*"
+        (shell-command (concat "git clone git@github.com:" repo " " clone-dir) "*clone-output*")))))
 (provide 'github)
+
+;; this kinda works
+;; (with-output-to-temp-buffer "*clone-buffer*" (print (shell-command-to-string "ls -al")))

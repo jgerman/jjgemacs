@@ -695,6 +695,33 @@ offsets, this packages is supposed to infer based on the file.
 #+RESULTS:
 : t
 
+** ejc-sql
+
+#+begin_src emacs-lisp :results silent
+  (use-package ejc-sql
+    :straight t
+    :commands
+    (ejc-create-connection ejc-connect ejc-set-column-width-limit)
+    :init
+    (setq ejc-set-rows-limit 1000
+          ejc-result-table-impl 'orgtbl-mode
+          nrepl-sync-request-timeout 30)
+    (push 'ejc-company-backend company-backends)
+    (add-hook 'ejc-sql-minor-mode-hook
+              (lambda ()
+                (company-mode t))))
+#+end_src
+
+#+begin_src emacs-lisp :results silent
+      (defun connect-to-tw-athena ()
+        (interactive)
+        (ejc-create-connection "TW Athena Conn"
+                               :dependencies [[com.syncron.amazonaws/simba-athena-jdbc-driver "2.0.2"]]
+                               :dbtype "awsathena"
+                               :classname "com.simba.athena.jdbc.Driver"
+                               :subprotocol "awsathena"
+                               :subname "//athena.us-east-1.amazonaws.com:443/my_database;AwsCredentialsProviderArguments=default;AwsCredentialsProviderClass=com.simba.athena.amazonaws.auth.profile.ProfileCredentialsProvider;S3OutputLocation=s3://jayg-athena-query-holder/"))
+#+end_src
 * Languages
 ** General
 *** Smart Parens

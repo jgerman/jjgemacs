@@ -25,9 +25,27 @@
                             "/"
                             proj)))
     (if (file-directory-p clone-dir)
-        (message "Project has already been cloned.")
-      (with-output-to-temp-buffer "*clone-output*"
-        (shell-command (concat "git clone git@github.com:" repo " " clone-dir) "*clone-output*")))))
+        (message "Project already exists.")
+      (shell-command (concat "git clone git@github.com:" repo " " clone-dir) "*clone-output*"))))
+
+;; (defun github-clone ()
+;;   (interactive)
+;;   (let* ((repo (github-choose-repo))
+;;          (parts (split-string repo "/"))
+;;          (org (car parts))
+;;          (proj (cadr parts))
+;;          (clone-dir (concat (github-get-base-dir)
+;;                             "/"
+;;                             (downcase org)
+;;                             "/"
+;;                             proj)))
+;;     (if (file-directory-p clone-dir)
+;;         (message "Project has already been with.")
+;;       (with-output-to-temp-buffer "*clone-output*"
+;;         (insert (shell-command (concat "git clone git@github.com:" repo " " clone-dir) "*clone-output*"))
+;;         (pop-to-buffer "*clone-output*")
+;;         (special-mode)))))
+;; special mode doesn't completely kill the buffer, I'd like to do that eventually
 (provide 'github)
 
 ;; this kinda works

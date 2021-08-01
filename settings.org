@@ -688,13 +688,14 @@ offsets, this packages is supposed to infer based on the file.
 #+end_src
 
 ** My Github Cloning Tool
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results silent
   (load (locate-user-emacs-file "github.el") nil :nomessage)
 #+end_src
 
-#+RESULTS:
-: t
-
+** My Project creation tools
+#+begin_src emacs-lisp :results silent
+  (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
+#+end_src
 ** ejc-sql
 
 #+begin_src emacs-lisp :results silent

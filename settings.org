@@ -1073,6 +1073,17 @@ I clone the rust-analyzer projects into my usual directory structure ~/developme
     (when buffer-file-name
       (setq-local buffer-save-without-query t)))
 #+end_src
+
+*** Rustic hooks
+
+#+begin_src emacs-lisp :results silent
+    (add-hook 'rustic-mode-hook #'rainbow-delimiters-mode)
+    (add-hook 'rustic-mode-hook #'smartparens-mode)
+    (add-hook 'rustic-mode-hook #'turn-on-smartparens-strict-mode)
+#+end_src
+
+#+RESULTS:
+
 * Misc Functions
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp

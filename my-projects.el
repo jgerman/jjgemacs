@@ -23,6 +23,12 @@
     (shell-command (concat "lein new " templates " " project))
     (find-file (concat location project "/project.clj"))))
 
-
+(defun mp/new-rust-project ()
+  (interactive)
+  (let* ((org (read-string "Org? [jgerman]: " nil  nil "jgerman"))
+         (project (read-string "Project? "))
+         (location (concat *base-dir* "/" org "/" project)))
+    (shell-command (concat "cargo new " location))
+    (find-file (concat location "/src/main.rs"))))
 
 (provide 'my-projects)

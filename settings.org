@@ -728,6 +728,13 @@ offsets, this packages is supposed to infer based on the file.
   (use-package vterm
     :straight t)
 #+end_src
+** s3ed
+Trial of package to explore s3 repositories:
+TODO Figure out why this breaks...
+#+begin_src emacs-lisp :results silent
+  (use-package s3ed
+    :straight t)
+#+end_src
 * Languages
 ** General
 *** Smart Parens

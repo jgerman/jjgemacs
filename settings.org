@@ -369,6 +369,15 @@ remember.
     :straight t
     :bind ("M-@" . er/expand-region))
 #+end_src
+*** Hacky fix for magit issue
+
+One of the additions I made around commit
+4cf95ee81b66820b6cb2e48eb578f337a36d9711 seems to have broken the commands in
+magit. Comment out this line when ready to figure out wth happened. This is just
+a temporary workaround.
+#+begin_src emacs-lisp :results silent
+(setq project-switch-commands t)
+#+end_src
 * General Tools
 ** Treemacs
 #+begin_src emacs-lisp

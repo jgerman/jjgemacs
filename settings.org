@@ -761,6 +761,14 @@ Bindings that shouldn't be global but are for now.
   (global-set-key (kbd "C-)") 'sp-forward-slurp-sexp) ;; this shouldn't be always set but for now if it gets me going
   (global-set-key (kbd "M-s") 'sp-splice-sexp)
 #+end_src
+*** Javascript
+#+begin_src emacs-lisp :results nil
+  (setq js-indent-level 2)
+#+end_src
+
+#+RESULTS:
+: 2
+
 *** JSON
 Extends the built in javascript mode iirc.
 #+begin_src emacs-lisp

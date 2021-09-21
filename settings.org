@@ -98,29 +98,11 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
   #+end_src
 
 ** Package Management
-*** Straight
-    Going to attempt to use straight this time around.
-
-  #+begin_src emacs-lisp
-    (defvar bootstrap-version)
-    (let ((bootstrap-file
-	   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	  (bootstrap-version 5))
-      (unless (file-exists-p bootstrap-file)
-	(with-current-buffer
-	    (url-retrieve-synchronously
-	     "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	     'silent 'inhibit-cookies)
-	  (goto-char (point-max))
-	  (eval-print-last-sexp)))
-      (load bootstrap-file nil 'nomessage))
-  #+end_src
-
-  Integrate with use-package
-
-  #+begin_src emacs-lisp
-    (straight-use-package 'use-package)
-  #+end_src
+Package management has been moved to init.el, prior to tangling this file. The
+reason is that I need to be able to use a more current version of org, which
+means pulling in org prior to this file being processed. Otherwise I get the
+built in version which as of Emacs 27.1 is outdated to the point where org-roam
+doesn't work.
 
 ** Look and feel
    Pull in doom themes to use the bold, italic, and doom-vibrant.
@@ -468,7 +450,7 @@ Replace the normal window switch with ace-select window.
     (use-package ob-typescript
       :straight t)
   #+end_src
-  #+begin_src emacs-lisp
+  #+begin_src emacs-lisp :results silent
 
     (use-package ob-go
     :straight t)
@@ -504,8 +486,25 @@ Replace the normal window switch with ace-select window.
 
   #+end_src
 
-  #+RESULTS:
-  : cider
+
+Setting up org roam to get my notes in order.
+
+#+begin_src emacs-lisp :results nil
+  (use-package org-roam
+    :straight t
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/roam-notes")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert))
+    :config
+    (org-roam-setup))
+#+end_src
+
+#+RESULTS:
+: org-roam-node-insert
 
 *** Logging done in org mode
 #+begin_src emacs-lisp
@@ -746,6 +745,7 @@ TODO Figure out why this breaks...
   (use-package s3ed
     :straight t)
 #+end_src
+
 * Languages
 ** General
 *** Smart Parens

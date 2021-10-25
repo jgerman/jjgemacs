@@ -409,9 +409,6 @@ Replace the normal window switch with ace-select window.
 (global-set-key (kbd "C-x o") 'ace-select-window)
 #+end_src
 
-#+RESULTS:
-: ace-select-window
-
 ** Org Mode
 
    First things first, require org tempo to get the easy templates back. This
@@ -743,6 +740,17 @@ Trial of package to explore s3 repositories:
 TODO Figure out why this breaks...
 #+begin_src emacs-lisp :results silent
   (use-package s3ed
+    :straight t)
+#+end_src
+
+** Multiple Cursors
+#+begin_src emacs-lisp :results silent
+  (use-package multiple-cursors
+    :straight t)
+#+end_src
+** Dot Env
+#+begin_src emacs-lisp :results silent
+  (use-package dotenv-mode
     :straight t)
 #+end_src
 

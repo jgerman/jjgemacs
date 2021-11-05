@@ -629,6 +629,13 @@ Shows what key bindings are open in a particular mode.
     :straight t
     :mode "\\Dockerfile*//")
 #+end_src
+
+#+begin_src emacs-lisp :results silent
+  (use-package docker
+    :straight t
+    :bind ("C-c d" . docker))
+#+end_src
+
 ** Col-Highlight
 Working with yaml is a pain in the ass without this:
 Might drop this...

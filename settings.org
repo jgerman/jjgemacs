@@ -1191,6 +1191,14 @@ If this gets any more complicated I'll move it into its own package.
 
 #+end_src
 
+* DB-Connections
+
+I keep my db connections in a separate config that's not checked in.
+
+#+begin_src emacs-lisp :results silent
+  (load "~/.emacs-dbs.el")
+#+end_src
+
 * Keep Custom out of this file
 This should keep anything handled by customize out of this file.
 #+begin_src emacs-lisp

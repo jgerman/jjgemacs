@@ -822,6 +822,14 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
     (lsp-idle-delay 0.6)
     :config (lsp-enable-which-key-integration t)
     (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+  (setq
+   lsp-lens-enable t
+   lsp-signarture-auto-activate nil
+                                          ; lsp-enable-indentation nil ; uncomment to use cider indentation
+                                          ; lsp-enable-completion-at-point nil ; uncomment to use cider completion
+   )
+
   #+end_src
 
 #+begin_src emacs-lisp :results silent
@@ -932,15 +940,19 @@ to) but I'm going to take a crack and racket-mode as well.
 #+end_src
 ** Clojure
 Clojure mode.
-#+begin_src emacs-lisp
-  (use-package clojure-mode
-    :straight t
-    :config
-    (add-hook 'clojure-mode-hook #'smartparens-mode)
-    (add-hook 'clojure-mode-hook #'subword-mode)
-    (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
-    (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
-    (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
+#+begin_src emacs-lisp :results silent
+    (use-package clojure-mode
+      :straight t
+      :config
+      (add-hook 'clojure-mode-hook #'smartparens-mode)
+      (add-hook 'clojure-mode-hook #'subword-mode)
+      (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+      (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
+      (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
+      (add-hook 'clojure-mode-hook 'lsp)
+      (add-hook 'clojurescript-mode-hook 'lsp)
+      (add-hook 'clojurec-mode-hook 'lsp)
+      )
 #+end_src
 
 Gotta have cider.
@@ -1124,6 +1136,16 @@ I clone the rust-analyzer projects into my usual directory structure ~/developme
 #+end_src
 
 #+RESULTS:
+
+** LilyPond
+
+Lilypond mode is installed in `/user/share/emacs/site-lisp` when installed via
+apt-get (on Linux obviously). Not 100% ideal and at a minimum I should check if
+it exists so new installations notify me to install it.
+#+begin_src emacs-lisp :results silent
+  (require 'lilypond-mode)
+  (add-to-list 'auto-mode-alist '("\\.ly\\'" . lilypond-mode))
+#+end_src
 
 * Misc Functions
 ** xml format function (stolen from Chris Gore)

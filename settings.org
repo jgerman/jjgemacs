@@ -760,6 +760,24 @@ TODO Figure out why this breaks...
   (use-package dotenv-mode
     :straight t)
 #+end_src
+** Jira
+
+Ewww...
+
+#+begin_src emacs-lisp :results silent
+  (use-package org-jira
+    :straight t)
+#+end_src
+
+#+begin_src emacs-lisp :results silent
+  (when (not (file-directory-p "~/.org-jira"))
+    (make-directory "~/.org-jira"))
+#+end_src
+
+Change or delete this if I switch jobs.
+#+begin_src emacs-lisp :results silent
+  (setq jiralib-url "https://tradeswell.atlassian.net/")
+#+end_src
 
 * Languages
 ** General
@@ -853,7 +871,7 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
 #+RESULTS:
 
 Going to pull in a library I found GraphQL.el. This should let me more easily
-build queries for use in resclient mode, or better yet in an org babel block.
+build queries for use in resclient mode, or better yet in an orgbabel block.
 
 #+begin_src emacs-lisp
   (use-package graphql

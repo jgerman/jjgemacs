@@ -799,9 +799,6 @@ Bindings that shouldn't be global but are for now.
   (setq js-indent-level 2)
 #+end_src
 
-#+RESULTS:
-: 2
-
 *** JSON
 Extends the built in javascript mode iirc.
 #+begin_src emacs-lisp

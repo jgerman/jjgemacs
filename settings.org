@@ -1159,8 +1159,10 @@ apt-get (on Linux obviously). Not 100% ideal and at a minimum I should check if
 it exists so new installations notify me to install it.
 #+begin_src emacs-lisp :results silent
   (require 'lilypond-mode)
-  (add-to-list 'auto-mode-alist '("\\.ly\\'" . lilypond-mode))
+  (add-to-list 'auto-mode-alist '("\\.ly\\'" . LilyPond-mode))
 #+end_src
+
+Add a compile and save command.
 
 * Misc Functions
 ** xml format function (stolen from Chris Gore)

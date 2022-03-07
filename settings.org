@@ -833,31 +833,21 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
     :straight t
     :init (setq lsp-keymap-prefix "C-c l")
     :custom
-    (lsp-eldoc-render-all t)
     (lsp-idle-delay 0.6)
     :config (lsp-enable-which-key-integration t)
     (add-hook 'lsp-mode-hook 'lsp-ui-mode))
-
-  (setq
-   lsp-lens-enable t
-   lsp-signarture-auto-activate nil
-                                          ; lsp-enable-indentation nil ; uncomment to use cider indentation
-                                          ; lsp-enable-completion-at-point nil ; uncomment to use cider completion
-   )
-
   #+end_src
 
 #+begin_src emacs-lisp :results silent
   (use-package lsp-ui
     :straight t
-    :commands lsp-ui-mode
-    :custom
-    (lsp-ui-peek-always-show t)
-    (lsp-ui-sideline-show-hover t)
-    (lsp-ui-doc-enable nil))
+    :commands lsp-ui-mode)
 #+end_src
 
-#+RESULTS:
+#+begin_src emacs-lisp :results silent
+
+#+end_src
+
 
 *** GraphQL
 #+begin_src emacs-lisp
@@ -964,7 +954,7 @@ Clojure mode.
       (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
       (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
       (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
-      (add-hook 'clojure-mode-hook 'lsp)
+      ;;(add-hook 'clojure-mode-hook 'lsp)
       (add-hook 'clojurescript-mode-hook 'lsp)
       (add-hook 'clojurec-mode-hook 'lsp)
       )

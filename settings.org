@@ -158,10 +158,11 @@ project package makes the problem go away...
 #+end_src
 
 Some additional bindings.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results silent
   (global-set-key (kbd "C-c p p") #'projectile-switch-project)
   (global-set-key (kbd "C-c p f") #'projectile-find-file)
   (global-set-key (kbd "C-c p t") #'projectile-toggle-between-implementation-and-test)
+  (global-set-key (kbd "C-c p b") #'projectile-switch-to-buffer)
 #+end_src
 ** Search
 ag for searching
@@ -844,8 +845,9 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
     :commands lsp-ui-mode)
 #+end_src
 
+Turning stuff on and off
 #+begin_src emacs-lisp :results silent
-
+(setq lsp-ui-doc-enable nil)
 #+end_src
 
 
@@ -954,7 +956,7 @@ Clojure mode.
       (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
       (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
       (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
-      ;;(add-hook 'clojure-mode-hook 'lsp)
+      (add-hook 'clojure-mode-hook 'lsp)
       (add-hook 'clojurescript-mode-hook 'lsp)
       (add-hook 'clojurec-mode-hook 'lsp)
       )

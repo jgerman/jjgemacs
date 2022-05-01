@@ -72,7 +72,7 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
   ;; Fantasque Sans Mono
   (defvar *my-font-size* 140)
   (when (= (display-pixel-width) 1920)
-    (setq *my-font-size* 100))
+    (setq *my-font-size* 110))
   (when (= (display-pixel-width) 3456)
     (setq *my-font-size* 100))
   (when (= (display-pixel-width) 3840)
@@ -184,6 +184,13 @@ Company mode for completions.
   (use-package company
     :straight t)
   (global-company-mode)
+#+end_src
+
+Try out company box for icons
+#+begin_src emacs-lisp :results silent
+  (use-package company-box
+    :straight t
+    :hook (company-mode . company-box-mode))
 #+end_src
 
 *** TODO slime company mode
@@ -450,37 +457,39 @@ Replace the normal window switch with ace-select window.
   #+end_src
   #+begin_src emacs-lisp :results silent
 
-    (use-package ob-go
-    :straight t)
-      ;; TODO TEMPORARY I need a solution for managing non-package elisp files
-    ;; this requires manually putting the restclient code in the search path
-    ;; TODO this can probably be a gitsubmodule ... hey change this to use straight
-    (load-file (concat *install-dir* "ob-restclient.el"))
-    (require 'ob-restclient)
-    (require 'ob-go)
-    (require 'ob-clojure)
-    (require 'ob-js)
-    (require 'ob-groovy)
-    (require 'ob-kotlin)
-    (require 'ob-typescript)
+        (use-package ob-go
+        :straight t)
+          ;; TODO TEMPORARY I need a solution for managing non-package elisp files
+        ;; this requires manually putting the restclient code in the search path
+        ;; TODO this can probably be a gitsubmodule ... hey change this to use straight
+        (load-file (concat *install-dir* "ob-restclient.el"))
+        (require 'ob-restclient)
+        (require 'ob-go)
+        (require 'ob-clojure)
+        (require 'ob-js)
+        (require 'ob-groovy)
+        (require 'ob-kotlin)
+        (require 'ob-typescript)
 
-    (with-eval-after-load 'org
-      (org-babel-do-load-languages 'org-babel-load-languages
-                                                           '((shell		.	t)
-                                                             (lisp		.	t)
-                                                             (clojure	.	t)
-                                                             (sql		.	t)
-                                                             (python	.	t)
-                                                             (go		.	t)
-                                                             (sql           .       t)
-                                                             (kotlin        .       t)
-                                                             (typescript    .       t)
-                                                             (scheme        .       t)
-                                                             (js		.	t)
-                                                             (restclient	.	t)
-                                                             (groovy        .       t))))
+        (with-eval-after-load 'org
+          (org-babel-do-load-languages 'org-babel-load-languages
+                                                               '((shell		.	t)
+                                                                 (lisp		.	t)
+                                                                 (clojure	.	t)
+                                                                 (sql		.	t)
+                                                                 (python	.	t)
+                                                                 (go		.	t)
+                                                                 (sql           .       t)
+                                                                 (kotlin        .       t)
+                                                                 (typescript    .       t)
+                                                                 (scheme        .       t)
+                                                                 (js		.	t)
+                                                                 (restclient	.	t)
+                                                                 (groovy        .       t)
+                                                                 (dot . t)
+    )))
 
-    (setq org-babel-clojure-backend 'cider)
+        (setq org-babel-clojure-backend 'cider)
 
   #+end_src
 
@@ -990,6 +999,11 @@ clj-refactor
 
 I'm leaving out flycheck for now, I used to use joker but I'm not sure it's
 necessary.
+** C/C++
+#+begin_src emacs-lisp :results silent
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
+#+end_src
 ** Groovy
 I haven't used Groovy since waaaaay back other than in Jenkinsfiles.
 *** Groovy Mode
@@ -1095,7 +1109,7 @@ LSP solution or Elpy, Elply for now.
 ** C/C++
 
 #+begin_src emacs-lisp :results silent
-  (setq company-clang-executable "clang-11")
+  (setq company-clang-executable "clang-13")
 #+end_src
 
 ** Rust

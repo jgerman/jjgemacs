@@ -370,6 +370,13 @@ remember.
     :straight t
     :bind ("M-@" . er/expand-region))
 #+end_src
+
+*** String Manipulation Library
+
+#+begin_src emacs-lisp :results silent
+  (use-package s
+    :straight t)
+#+end_src
 * General Tools
 ** Treemacs
 #+begin_src emacs-lisp
@@ -789,6 +796,13 @@ Change or delete this if I switch jobs.
   (setq jiralib-url "https://tradeswell.atlassian.net/")
 #+end_src
 
+** Hippie Expand
+
+Rebinding from dabbrev-expand to hippie expand.
+
+#+begin_src emacs-lisp :results silent
+  (global-set-key "\M-/" 'hippie-expand)
+#+end_src
 * Languages
 ** General
 *** Smart Parens
@@ -859,6 +873,12 @@ Turning stuff on and off
 (setq lsp-ui-doc-enable nil)
 #+end_src
 
+Try installing dap mode.
+
+#+begin_src emacs-lisp :results silent
+  (use-package dap-mode
+    :straight t)
+#+end_src
 
 *** GraphQL
 #+begin_src emacs-lisp
@@ -913,6 +933,30 @@ add other languages.
   (add-hook 'slime-repl-mode-hook #'smartparens-mode)
   (add-hook 'slime-repl-mode-hook #'turn-on-smartparens-strict-mode)
 #+end_src
+
+** Prolog
+
+Need to fill out more but to start, .pl files should be Prolog instead of Perl.
+I still have a soft spot in my heart for Perl but I have zero plans to use it
+again and if I do I don't mind switching the mode.
+
+#+begin_src emacs-lisp :results silent
+    (add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
+#+end_src
+
+
+No idea if this is going to work but I ran this in the shell:
+
+#+begin_src bash
+swipl -g "pack_install(debug_adapter)" -t halt
+#+end_src
+
+And supposedly this gives you the debugger?
+
+#+begin_src emacs-lisp :results silent
+(require 'dap-swi-prolog)
+#+end_src
+
 ** Scheme
 #+begin_src emacs-lisp
   (use-package geiser
@@ -1242,6 +1286,11 @@ I keep my db connections in a separate config that's not checked in.
 
 #+begin_src emacs-lisp :results silent
   (load "~/.emacs-dbs.el")
+#+end_src
+
+Beginning of an tradeswell.el, for now it's just a file.
+#+begin_src emacs-lisp :results silent
+(load "~/development/tradeswell/tradeswell-emacs/tradeswell.el" t)
 #+end_src
 
 * Keep Custom out of this file

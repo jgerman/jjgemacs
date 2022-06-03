@@ -377,6 +377,14 @@ remember.
   (use-package s
     :straight t)
 #+end_src
+*** Compat
+I've run into trouble getting compat before, this time it was because I was
+trying to set up forge.
+
+#+begin_src emacs-lisp :results silent
+  (use-package compat
+    :straight (compat :type git :host github :repo "phikal/compat.el"))
+#+end_src
 * General Tools
 ** Treemacs
 #+begin_src emacs-lisp
@@ -552,6 +560,15 @@ Controlling how magit status opens.
                       nil
                     '(display-buffer-same-window)))))
 #+end_src
+
+#+begin_src emacs-lisp :results nil
+  (use-package forge
+    :straight t
+    :after magit)
+#+end_src
+
+#+RESULTS:
+
 ** Git Gutter
 #+begin_src emacs-lisp
   (use-package git-gutter+

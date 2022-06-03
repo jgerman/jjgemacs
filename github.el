@@ -1,3 +1,5 @@
+;; this depends on a set of python scripts I wrote and installed locally
+
 (defun github-choose-repo ()
   (interactive)
   (completing-read "Repo?: "

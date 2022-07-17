@@ -397,6 +397,12 @@ trying to set up forge.
            ("C-x t t"   . treemacs)))
 #+end_src
 
+** Neotree
+
+#+begin_src emacs-lisp :results silent
+  (use-package neotree
+    :straight t)
+#+end_src
 ** Restclient Mode
 Can't live without restclient mode, way too useful.
 
@@ -563,6 +569,12 @@ Controlling how magit status opens.
 
 #+begin_src emacs-lisp :results nil
   (use-package forge
+    :straight t
+    :after magit)
+#+end_src
+
+#+begin_src emacs-lisp :results nil
+  (use-package code-review
     :straight t
     :after magit)
 #+end_src
@@ -925,15 +937,24 @@ add other languages.
 #+end_src
 ** Lisp
 *** Slime
-#+begin_src emacs-lisp
-  (use-package slime
-    :straight t
-    :config
-    (setq inferior-lisp-program "/usr/local/bin/sbcl")
-    ;;(setq slime-contribs '(slime-fancy slime-asdf)) ;;taking out temporarily for clisp
-    (setq slime-lisp-implementations
-          '((sbcl ("/usr/local/bin/sbcl"))
-            (clisp ("/usr/local/bin/clisp")))))
+#+begin_src emacs-lisp :results silent
+  ;; (use-package slime
+  ;;   :straight t
+  ;;   :config
+  ;;   (setq inferior-lisp-program "/usr/bin/sbcl")
+  ;;   ;;(setq slime-contribs '(slime-fancy slime-asdf)) ;;taking out temporarily for clisp
+  ;;   (setq slime-lisp-implementations
+  ;;         '((sbcl ("/usr/bin/sbcl"))
+  ;;           (clisp ("/usr/local/bin/clisp")))))
+#+end_src
+
+*** Sly
+Going to try Sly for a bit instead of Slime.
+#+begin_src emacs-lisp :results silent
+      (use-package sly
+        :straight t
+        :config
+        (setq inferior-lisp-program "/usr/bin/sbcl"))
 #+end_src
 
 *** Lisp hooks
@@ -1230,6 +1251,8 @@ it exists so new installations notify me to install it.
 #+end_src
 
 Add a compile and save command.
+
+** Java
 
 * Misc Functions
 ** xml format function (stolen from Chris Gore)

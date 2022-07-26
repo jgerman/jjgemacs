@@ -383,7 +383,7 @@ trying to set up forge.
 
 #+begin_src emacs-lisp :results silent
   (use-package compat
-    :straight (compat :type git :host github :repo "phikal/compat.el"))
+    :straight (compat.el :type git :host github :repo "phikal/compat.el"))
 #+end_src
 * General Tools
 ** Treemacs
@@ -1255,6 +1255,14 @@ Add a compile and save command.
 ** Java
 
 * Misc Functions
+** Disable Warnings for Native Comp
+This is supposed to be able to be set to the symbol silent to stop popping up a
+warnigns buffer, which is the behavior I would prefer. But I kept getting errors
+so I set it to nil for now.
+U
+#+begin_src emacs-lisp :results silent
+(setq native-comp-async-report-warnings-errors nil)
+#+end_src
 ** xml format function (stolen from Chris Gore)
 #+begin_src emacs-lisp
   (defun xml-format ()

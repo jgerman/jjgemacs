@@ -1328,6 +1328,25 @@ If this gets any more complicated I'll move it into its own package.
 
 #+end_src
 
+** Hook into magit for formatting work commit messages automatically
+
+#+begin_src emacs-lisp :results silent
+  (defun tw-project-p ()
+    (string-match-p (regexp-quote "development/tradeswell") default-directory))
+
+  (defun tw-branch-git-subj ()
+    (let* ((pieces (split-string (magit-get-current-branch) "-"))
+           (prj (car pieces))
+           (num (cadr pieces)))
+      (concat "[" (upcase prj) "-" num "]")))
+
+  (defun my-git-commit-insert-branch ()
+    (when (tradeswell-project-p)
+    (insert (tw-branch-git-subj))))
+
+  (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
+#+end_src
+
 * DB-Connections
 
 I keep my db connections in a separate config that's not checked in.

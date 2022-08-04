@@ -1335,10 +1335,8 @@ If this gets any more complicated I'll move it into its own package.
     (string-match-p (regexp-quote "development/tradeswell") default-directory))
 
   (defun tw-branch-git-subj ()
-    (let* ((pieces (split-string (magit-get-current-branch) "-"))
-           (prj (car pieces))
-           (num (cadr pieces)))
-      (concat "[" (upcase prj) "-" num "]")))
+    (let ((prj (car (split-string (magit-get-current-branch) "\/"))))
+      (concat "[" (upcase prj) "] ")))
 
   (defun my-git-commit-insert-branch ()
     (when (tradeswell-project-p)

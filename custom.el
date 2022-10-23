@@ -5,7 +5,9 @@
  ;; If there is more than one, they won't work right.
  '(python-shell-interpreter "python3")
  '(safe-local-variable-values
-   '((cider-ns-refresh-after-fn . "integrant.repl/resume")
+   '((cider-clojure-cli-global-options . -A:env/repl)
+     (cider-clojure-cli-global-options . -A:env/test:env/dev)
+     (cider-ns-refresh-after-fn . "integrant.repl/resume")
      (cider-ns-refresh-before-fn . "integrant.repl/suspend"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

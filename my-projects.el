@@ -13,7 +13,7 @@
     (make-empty-file location)
     (find-file location)))
 
-(defun mp/new-clj-project ()
+(defun mp/new-lein-project ()
   (interactive)
   (let* ((org (read-string "Org? [jgerman]: " nil  nil "jgerman"))
          (project (read-string "Project?: "))
@@ -22,6 +22,19 @@
          (default-directory location))
     (shell-command (concat "lein new " templates " " project))
     (find-file (concat location project "/project.clj"))))
+
+(defun mp/new-clj-project ()
+  (interactive)
+  (let* ((org (read-string "Org? [jgerman]: " nil  nil "jgerman"))
+         (location (concat *base-dir* "/" org "/"))
+         (project (read-string "Project?: "))
+         (prj-name (concat org "/" project))
+         (template (completing-read "Alias? "
+                                    '("app" "lib" "scratch")))
+         (default-directory location))
+    (shell-command (concat "clojure -Tnew " template " :name " prj-name))
+    (find-file (concat location project "/deps.edn"))))
+
 
 (defun mp/new-rust-project ()
   (interactive)

@@ -853,6 +853,17 @@ Rebinding from dabbrev-expand to hippie expand.
 #+begin_src emacs-lisp :results silent
   (global-set-key "\M-/" 'hippie-expand)
 #+end_src
+
+** Visual Fill Column Mode
+
+Learned about this from system crafters for centering org mode text. Could work
+for presentation mode (that I haven't set up yet) but I'm also curious if I want
+it always on.
+
+#+begin_src emacs-lisp :results silent
+  (use-package visual-fill-column
+    :straight t)
+#+end_src
 * Languages
 ** General
 *** Smart Parens
@@ -1364,6 +1375,11 @@ If this gets any more complicated I'll move it into its own package.
     (insert (tw-branch-git-subj))))
 
   (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
+#+end_src
+
+** Transparent Frame
+#+begin_src emacs-lisp :results silent2
+ (set-frame-parameter (selected-frame) 'alpha '(95 95))
 #+end_src
 
 * DB-Connections

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: cidertap
+# key: cidertap
+# --
+(add-tap (bound-fn* clojure.pprint/pprint))$0

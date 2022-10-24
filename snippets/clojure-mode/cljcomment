@@ -1,0 +1,7 @@
+# key: cljcomment
+# name: cljcomment
+# --
+(comment
+        $0
+;;
+,)

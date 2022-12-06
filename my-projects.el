@@ -23,6 +23,8 @@
     (shell-command (concat "lein new " templates " " project))
     (find-file (concat location project "/project.clj"))))
 
+;; Uses deps-new installed as a tool:
+;; https://github.com/seancorfield/deps-new
 (defun mp/new-clj-project ()
   (interactive)
   (let* ((org (read-string "Org? [jgerman]: " nil  nil "jgerman"))

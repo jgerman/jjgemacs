@@ -12,6 +12,11 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
 ** TODO better organization
 
 * Basics
+** GC Cons Threshhold
+#+begin_src emacs-lisp :results silent
+(setq gc-cons-threshold 100000000)
+#+end_src
+
 ** OS X
    I'm used to things a certain way. Also, unlike a lot of Emacs users I
    prefer to use CapsLock as meta instead of Ctrl. Which I set via the
@@ -70,13 +75,15 @@ init (nor am I sure I want it to). So not everything is likely to be 100% yet.
   ;; Source Code Pro
   ;; Hack (150)
   ;; Fantasque Sans Mono
-  (defvar *my-font-size* 140)
+  (defvar *my-font-size* 100)
   (when (= (display-pixel-width) 1920)
     (setq *my-font-size* 110))
   (when (= (display-pixel-width) 3456)
     (setq *my-font-size* 100))
   (when (= (display-pixel-width) 3840)
     (setq *my-font-size* 120))
+  (when (= (display-pixel-width) 2560)
+    (setq *my-font-size* 100))
   (message (concat "Setting font to: " (number-to-string *my-font-size*)))
   (defvar *my-font* "")
   (setq *my-font* "Hack")
@@ -913,10 +920,15 @@ Not working yet...
 *** LSP Mode
 Installing this to experiment with Kotlin but likely to use elsewhere.
 #+begin_src emacs-lisp :results silent
+    (setq lsp-log-io nil)
+#+end_src
+
+#+begin_src emacs-lisp :results silent
   (use-package lsp-mode
     :commands (lsp lsp-deferred)
     :straight t
     :init (setq lsp-keymap-prefix "C-c l")
+          (setq read-process-output-max (* 1024 1024))
     :custom
     (lsp-idle-delay 0.6)
     :config (lsp-enable-which-key-integration t)
@@ -940,7 +952,16 @@ Try installing dap mode.
   (use-package dap-mode
     :straight t)
 #+end_src
+*** Lisp
 
+Going to give this another shot for lisp languages... moving quickly with semi
+model key bindings would be nice. If this doesn't stick I'll try my own modal
+that I can toggle on.
+
+#+begin_src emacs-lisp :results silent
+  (use-package lispy
+    :straight t)
+#+end_src
 *** GraphQL
 #+begin_src emacs-lisp
   (use-package graphql-mode

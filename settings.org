@@ -705,9 +705,9 @@ Shows what key bindings are open in a particular mode.
 #+end_src
 
 #+begin_src emacs-lisp :results silent
-  (use-package docker
-    :straight t
-    :bind ("C-c d" . docker))
+  ;;(use-package docker
+  ;;  :straight t
+  ;;  :bind ("C-c d" . docker))
 #+end_src
 
 ** Col-Highlight
@@ -787,29 +787,29 @@ offsets, this packages is supposed to infer based on the file.
 ** ejc-sql
 
 #+begin_src emacs-lisp :results silent
-  (use-package ejc-sql
-    :straight t
-    :commands
-    (ejc-create-connection ejc-connect ejc-set-column-width-limit)
-    :init
-    (setq ejc-set-rows-limit 1000
-          ejc-result-table-impl 'orgtbl-mode
-          nrepl-sync-request-timeout 30)
-    (push 'ejc-company-backend company-backends)
-    (add-hook 'ejc-sql-minor-mode-hook
-              (lambda ()
-                (company-mode t))))
+  ;; (use-package ejc-sql
+  ;;   :straight t
+  ;;   :commands
+  ;;   (ejc-create-connection ejc-connect ejc-set-column-width-limit)
+  ;;   :init
+  ;;   (setq ejc-set-rows-limit 1000
+  ;;         ejc-result-table-impl 'orgtbl-mode
+  ;;         nrepl-sync-request-timeout 30)
+  ;;   (push 'ejc-company-backend company-backends)
+  ;;   (add-hook 'ejc-sql-minor-mode-hook
+  ;;             (lambda ()
+  ;;               (company-mode t))))
 #+end_src
 
 #+begin_src emacs-lisp :results silent
-      (defun connect-to-tw-athena ()
-        (interactive)
-        (ejc-create-connection "TW Athena Conn"
-                               :dependencies [[com.syncron.amazonaws/simba-athena-jdbc-driver "2.0.2"]]
-                               :dbtype "awsathena"
-                               :classname "com.simba.athena.jdbc.Driver"
-                               :subprotocol "awsathena"
-                               :subname "//athena.us-east-1.amazonaws.com:443/my_database;AwsCredentialsProviderArguments=default;AwsCredentialsProviderClass=com.simba.athena.amazonaws.auth.profile.ProfileCredentialsProvider;S3OutputLocation=s3://jayg-athena-query-holder/"))
+  ;; (defun connect-to-tw-athena ()
+  ;;   (interactive)
+  ;;   (ejc-create-connection "TW Athena Conn"
+  ;;                          :dependencies [[com.syncron.amazonaws/simba-athena-jdbc-driver "2.0.2"]]
+  ;;                          :dbtype "awsathena"
+  ;;                          :classname "com.simba.athena.jdbc.Driver"
+  ;;                          :subprotocol "awsathena"
+  ;;                          :subname "//athena.us-east-1.amazonaws.com:443/my_database;AwsCredentialsProviderArguments=default;AwsCredentialsProviderClass=com.simba.athena.amazonaws.auth.profile.ProfileCredentialsProvider;S3OutputLocation=s3://jayg-athena-query-holder/"))
 #+end_src
 ** libvterm
 #+begin_src emacs-lisp :results silent
@@ -918,21 +918,22 @@ Not working yet...
     :mode ("\\.md\\'" . markdown-mode))
 #+end_src
 *** LSP Mode
-Installing this to experiment with Kotlin but likely to use elsewhere.
+
 #+begin_src emacs-lisp :results silent
     (setq lsp-log-io nil)
 #+end_src
 
 #+begin_src emacs-lisp :results silent
-  (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :straight t
-    :init (setq lsp-keymap-prefix "C-c l")
-          (setq read-process-output-max (* 1024 1024))
-    :custom
-    (lsp-idle-delay 0.6)
-    :config (lsp-enable-which-key-integration t)
-    (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+    (use-package lsp-mode
+      :commands (lsp lsp-deferred)
+      :straight t
+      :init (setq lsp-keymap-prefix "C-c l")
+            (setq read-process-output-max (* 1024 1024))
+      :custom
+      (lsp-idle-delay 0.6)
+      :config (lsp-enable-which-key-integration t)
+;;      (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+      )
   #+end_src
 
 #+begin_src emacs-lisp :results silent
@@ -941,9 +942,13 @@ Installing this to experiment with Kotlin but likely to use elsewhere.
     :commands lsp-ui-mode)
 #+end_src
 
-Turning stuff on and off
+Fighting with lsp-ui
+
 #+begin_src emacs-lisp :results silent
-(setq lsp-ui-doc-enable nil)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-completion-show-detail nil)
+  (setq lsp-completion-show-label-description nil)
 #+end_src
 
 Try installing dap mode.
@@ -1291,20 +1296,6 @@ I clone the rust-analyzer projects into my usual directory structure ~/developme
     (add-hook 'rustic-mode-hook #'turn-on-smartparens-strict-mode)
 #+end_src
 
-#+RESULTS:
-
-** LilyPond
-
-Lilypond mode is installed in `/user/share/emacs/site-lisp` when installed via
-apt-get (on Linux obviously). Not 100% ideal and at a minimum I should check if
-it exists so new installations notify me to install it.
-#+begin_src emacs-lisp :results silent
-  (require 'lilypond-mode)
-  (add-to-list 'auto-mode-alist '("\\.ly\\'" . LilyPond-mode))
-#+end_src
-
-Add a compile and save command.
-
 ** Java
 
 * Misc Functions
@@ -1400,9 +1391,19 @@ If this gets any more complicated I'll move it into its own package.
 
 ** Transparent Frame
 #+begin_src emacs-lisp :results silent2
- (set-frame-parameter (selected-frame) 'alpha '(95 95))
+ (set-frame-parameter (selected-frame) 'alpha '(100 100))
 #+end_src
 
+** Company Backends
+
+Force company backends to a shorter list to see if the completion issue goes
+away. My current theory is that the ejc company mode was causing the occasional
+delay since it was first in the list. I need to learn a bit more about this but
+I've disabled ejc since I wasn't using it and shortened this list for now.
+
+#+begin_src emacs-lisp :results silent
+  (setq company-backends '((company-capf company-dabbrev-code)))
+#+end_src
 * DB-Connections
 
 I keep my db connections in a separate config that's not checked in.

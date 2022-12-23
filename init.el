@@ -174,6 +174,11 @@
   :init
   (setq doom-modeline-minor-modes (featurep 'minions)))
 
+(use-package hl-line
+  :straight t
+  :config
+  (global-hl-line-mode))
+
 (use-package minions
   :straight t
   :config (minions-mode 1))
@@ -921,8 +926,12 @@
         (funcall 'javascript-mode))
       (switch-to-buffer new-buff))))
 
-;; I don't know where I'm going to put these in the long run, they're highly TW
-;; specific to make ensuring commit messages match what we want at work
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Some sloppy crap that's mainly for my current job
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun tw-project-p ()
   (string-match-p (regexp-quote "development/tradeswell") default-directory))
 
@@ -936,6 +945,8 @@
 
 (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
 
+(load "~/.emacs-dbs.el")
+(load "~/development/tradeswell/tradeswell-emacs/tradeswell.el" t)
 
 ;; I usually just do this via dmenu
 ;; I should namespace the functions in it and change the name

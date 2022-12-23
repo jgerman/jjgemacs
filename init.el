@@ -675,6 +675,11 @@
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Misc Tools and Utils
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun xml-format ()
   (interactive)
@@ -696,6 +701,8 @@
         (funcall 'javascript-mode))
       (switch-to-buffer new-buff))))
 
+;; I don't know where I'm going to put these in the long run, they're highly TW
+;; specific to make ensuring commit messages match what we want at work
 (defun tw-project-p ()
   (string-match-p (regexp-quote "development/tradeswell") default-directory))
 

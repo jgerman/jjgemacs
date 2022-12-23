@@ -73,3 +73,10 @@ but it also looks odd right now. I'm getting a popup for completions, which I
 don't think is corfu, but could be, and it doesn't stretch across the frame.
 Tolerable for now, but something to run down. It wasn't even noticeable until I
 set hl-line on.
+
+*** Magit ordering
+
+Something I noticed when pushing a branch, in my old config a new branch's
+remote would automatically be set to origin/branch-name, the first new branch I
+pushed up after switching was pointing at master (and I assume would point at
+main). Something to keep an eye on.

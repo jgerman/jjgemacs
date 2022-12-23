@@ -67,6 +67,8 @@
 (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
 (set-frame-font *my-font* nil t)
 
+;; how do we treat tabs?
+(setq-default indent-tabs-mode nil)
 
 ;; I set this based on the advice from lsp-mode's performance page
 ;; currently using eglot but seems like a good thing to keep high
@@ -93,6 +95,9 @@
 (setq fci-rule-column 100)
 (set-window-scroll-bars (minibuffer-window) nil nil)
 (setq native-comp-async-report-warnings-errors nil)
+
+(setq custom-file (concat *install-dir* "custom.el"))
+(load custom-file)
 
 ;; TODO double check that this is doing what I think it's doing
 (setq backup-directory-alist
@@ -135,6 +140,12 @@
         (when (eql last-command-event 32)
           (let (eldoc-documentation-function)
             (eldoc-print-current-symbol-info)))))
+
+;; taken from here: https://wwvw.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
+(defun eshell-new ()
+  "Open a new instance of eshell."
+  (interactive)
+  (eshell 'N))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -251,6 +262,93 @@
 (use-package dockerfile-mode
   :straight t
   :mode "\\Dockerfile*//")
+
+;; restclient is great when I need it
+(use-package restclient
+  :straight (restclient :type git :host github :repo "pashky/restclient.el"))
+
+(use-package restclient-jq
+  :straight (restclient-jq :type git :host github :repo "pashky/restclient.el"))
+
+(add-to-list 'auto-mode-alist '("\\.restclient\\'" . restclient-mode))
+
+;; I need to start checking my snippets in, and learning to better manage
+;; yasnippet in general
+(use-package yasnippet
+  :straight t
+  :config
+  (yas-global-mode 1))
+
+(use-package free-keys
+  :straight t)
+
+;; I still use this though I think either consult or embark might have a better way
+(use-package multiple-cursors
+  :straight t)
+
+ (use-package graphql-mode
+    :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Org Mode Setup
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'org-tempo)
+
+(use-package org-bullets
+  :straight t
+  :config
+  (add-hook 'org-mode-hook #'org-bullets-mode))
+
+(add-hook 'org-mode-hook 'org-indent-mode)
+
+;; org-babel
+(use-package ob-kotlin
+  :straight (ob-kotlin :type git :host github :repo "zweifisch/ob-kotlin"))
+
+(use-package ob-typescript
+  :straight t)
+
+(use-package ob-go
+  :straight t)
+
+(require 'ob-go)
+(require 'ob-clojure)
+(require 'ob-js)
+(require 'ob-kotlin)
+(require 'ob-typescript)
+
+(with-eval-after-load 'org
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((shell		.	t)
+                                 (lisp		.	t)
+                                 (clojure	.	t)
+                                 (sql		.	t)
+                                 (python	.	t)
+                                 (go		.	t)
+                                 (sql           .       t)
+                                 (kotlin        .       t)
+                                 (typescript    .       t)
+                                 (scheme        .       t)
+                                 (js		.	t)
+                                 (dot . t)
+                                 )))
+
+(setq org-babel-clojure-backend 'cider)
+
+(use-package org-roam
+  :straight t
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory "~/roam-notes")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert))
+  :config
+  (org-roam-setup))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -615,6 +713,23 @@
 (global-set-key (kbd "C-)") 'sp-forward-slurp-sexp)
 (global-set-key (kbd "M-s") 'sp-splice-sexp)
 
+;; I can't seem to get the hang of turning this on for lisps all the time but I
+;; intend to use bits of the package (like lispy-avy)
+(use-package lispy
+  :straight t)
+
+(use-package repl-toggle
+  :straight (repl-toggle :type git :host github :repo "tomterl/repl-toggle")
+  :init
+  (setq rtog/fullscreen nil)
+  (setq rtog/mode-repl-alist '((emacs-lisp-mode . ielm))))
+
+;; why do I have this? what problem did it solve?
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Common Lisp
@@ -674,12 +789,117 @@
   (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
 
+;; is this even necessary anymore with eglot/lsp?
+(use-package clj-refactor
+  :straight t)
+
+(defun my-clj-refactor-hook ()
+  (clj-refactor-mode 1)
+  (yas-minor-mode 1)
+  (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+  (add-hook 'clojure-mode-hook #'my-clj-refactor-hook)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Schemes
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package geiser
+  :straight t
+  :custom
+  (geiser-active-implementations '(guile mit))
+  (geiser-set-default-implementation 'mit))
+
+(use-package racket-mode
+  :straight t)
+
+(add-hook 'racket-mode-hook #'smartparens-mode)
+(add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Golang - this is two jobs removed, haven't used it in forever
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun my-go-mode-hook ()
+  ;; Call Gofmt before saving
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
+           "go build -v && go test -v && go vet")))
+
+(defun auto-complete-for-go ()
+  (auto-complete-mode 1))
+
+(use-package go-mode
+  :straight t
+  :config
+  (add-hook 'go-mode-hook 'my-go-mode-hook)
+  (add-hook 'go-mode-hook 'auto-complete-for-go))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Kotlin
+;;
+;; Virtually no setup here, my old config used lsp-mode for kotlin, I have no idea how well
+;; eglot works with it. I may need to run both eglot and lsp-mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package kotlin-mode
+  :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Typescript
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package typescript-mode
+  :mode "\\.tsx?\\'"
+  :straight t
+  :config (setq typescript-indent-level 2)
+  :init
+  (add-hook 'typerscript-mode-hook #'smartparens-mode)
+  (add-hook 'typescript-mode-hook  #'turn-on-smartparens-strict-mode)
+  (add-hook 'typescript-mode-hook (lambda ()
+                                    (local-set-key (kbd "C-c C-z") 'rtog/goto-buffer-fun))))
+
+(use-package ts-comint
+  :straight t
+  :init
+  (add-hook 'typescript-mode-hook
+            (lambda ()
+              (local-set-key (kbd "C-x C-e") 'ts-send-last-sexp)
+              (local-set-key (kbd "C-M-x") 'ts-send-last-sexp-and-go)
+              (local-set-key (kbd "C-c b") 'ts-send-buffer)
+              (local-set-key (kbd "C-c C-b") 'ts-send-buffer-and-go)
+              (local-set-key (kbd "C-c l") 'ts-load-file-and-go))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Python -- next time I write python code maybe it'll be time to move this to eglot?
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package elpy
+  :straight t
+  :init
+  (elpy-enable)
+  (setq elpy-rpc-python-command "python3")
+  (setq elpy-rpc-virtualenv-path 'current))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Misc Tools and Utils
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package uuidgen
+  :straight (uuidgen :type git :host github :repo "kanru/uuidgen-el"))
 
 (defun xml-format ()
   (interactive)
@@ -716,5 +936,9 @@
 
 (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
 
-(setq custom-file (concat *install-dir* "custom.el"))
-(load custom-file)
+
+;; I usually just do this via dmenu
+;; I should namespace the functions in it and change the name
+(load (locate-user-emacs-file "github.el") nil :nomessage)
+
+(load (locate-user-emacs-file "my-projects.el") nil :nomessage)

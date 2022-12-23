@@ -437,6 +437,7 @@ Replace the normal window switch with ace-select window.
 (global-set-key (kbd "C-x o") 'ace-select-window)
 #+end_src
 
+
 ** Org Mode
 
    First things first, require org tempo to get the easy templates back. This

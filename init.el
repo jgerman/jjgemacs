@@ -30,6 +30,18 @@
 (defconst *development-dir* "~/development/")
 (defconst *install-dir* "~/development/jgerman/jjgemacs_v2/") ;; TODO change me when I merge this to main
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; I'm going to call these core settings for now, stuff I want in my emacs
+;; config no matter what (for the most part)
+;;
+;; Things that should go in this section are:
+;;   - fonts and font sizes
+;;   - emacs core settings (gc threshold, turning on and off ui elements)
+;;   - core window management (ace-window, pop-win)
+;;   - basically anything that I don't intend to change or remove
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; I still use sensible defaults to bootstrap my emacs configs
 (load-file (concat *development-dir* "hrs/sensible-defaults.el/sensible-defaults.el"))
@@ -92,6 +104,33 @@
 (use-package general
   :straight t)
 
+;; manage how pop up windows behave
+(use-package popwin
+  :straight t
+  :config
+  (setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action))))
+
+;; convenient window switching
+(use-package ace-window
+  :straight t)
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+(global-set-key (kbd "C-x o") 'ace-select-window)
+
+;; ensure shell
+(use-package exec-path-from-shell
+  :straight t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
+;; control how eldoc behaves
+(setq eldoc-documentation-function
+      (lambda ()
+        (when (eql last-command-event 32)
+          (let (eldoc-documentation-function)
+            (eldoc-print-current-symbol-info)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Theming
@@ -123,6 +162,19 @@
   :straight t
   :config (minions-mode 1))
 
+(use-package rainbow-delimiters
+  :straight t)
+
+;; on a new install this requires setting M-x install-all-the-icons
+(use-package all-the-icons
+  :straight t)
+
+(use-package all-the-icons-completion
+  :straight t
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -141,43 +193,13 @@
                           (projects . 10)
                           (bookmarks . 5))))
 
-(use-package markdown-mode
-  :straight t
-  :mode ("\\.md\\'" . markdown-mode))
-
-(use-package popwin
-  :straight t
-  :config
-  (setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Magit is really core, but I'm putting it in its own section
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
-(use-package ace-window
-  :straight t)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-
-(global-set-key (kbd "C-x o") 'ace-select-window)
-
-(use-package exec-path-from-shell
-  :straight t
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
-
-(use-package rainbow-delimiters
-  :straight t)
-
-(use-package all-the-icons
-  :straight t)
-
-(use-package all-the-icons-completion
-  :straight t
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
-
-;; magit
 (use-package magit
   :straight t
   :bind (("C-x g" . magit-status)))
@@ -197,8 +219,37 @@
                     nil
                   '(display-buffer-same-window)))))
 
-;; completion
-;; Enable vertico
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Generic modes that I want across emacs
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package markdown-mode
+  :straight t
+  :mode ("\\.md\\'" . markdown-mode))
+
+(use-package git-gutter+
+  :straight t
+  :init (global-git-gutter+-mode))
+
+(use-package which-key
+  :straight t)
+(which-key-mode)
+(which-key-setup-minibuffer)
+
+(use-package avy
+  :straight t
+  :bind (("C-'" . avy-goto-char-timer)
+         ("C-:" . avy-goto-line)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Completion framework
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package vertico
   :straight (vertico :files (:defaults "extensions/*")
 		     :includes (vertico-indexed
@@ -257,12 +308,6 @@
 
   )
 
-;; not sure where this should go.. higher maybe?
-(setq eldoc-documentation-function
-      (lambda ()
-        (when (eql last-command-event 32)
-          (let (eldoc-documentation-function)
-            (eldoc-print-current-symbol-info)))))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -270,7 +315,8 @@
   :init
   (savehist-mode))
 
-;; A few more useful configurations...
+;; A few more useful configurations (I got this from a blog, I've never seen
+;; use-package emacs before TODO)
 (use-package emacs
   :straight t
   :init
@@ -298,7 +344,10 @@
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
 
-;; Optionally use the `orderless' completion style.
+
+;; Completion style
+;; Trying orderless, but potentially may try prescient
+
 (use-package orderless
   :straight t
   :init
@@ -309,7 +358,8 @@
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
-;; Enable rich annotations using the Marginalia package
+
+;; Works well with vertico
 (use-package marginalia
   :straight t
   ;; Either bind `marginalia-cycle' globally or only in the minibuffer
@@ -323,9 +373,10 @@
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
-;; Example configuration for Consult
-;; TODO go through these bindings and make sure I want them
-;; I've already commented out the M-s ones due to an error from  use-package
+;; Example configuration for Consult TODO go through these bindings figure out
+;; what they do and whether or not I want them potentially group consult
+;; commands under a single key leader so I can get to what I want with which-key
+;; I've already commented out the M-s ones due to an error from use-package
 (use-package consult
   :straight
   ;; Replace bindings. Lazily loaded due by `use-package'.
@@ -448,6 +499,8 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+;; KB based right click context menus sign me up.. TODO dig deeper into embark
+;; to learn the more sophisticated uses
 (use-package embark
   :straight t
   :ensure t
@@ -470,6 +523,7 @@
                  nil
                  (window-parameters (mode-line-format . none)))))
 
+;; Provide cap with a popup
 (use-package corfu
   :straight t
   ;; Optional customizations
@@ -511,19 +565,7 @@
   ;; `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete))
 
-(use-package git-gutter+
-  :straight t
-  :init (global-git-gutter+-mode))
 
-(use-package which-key
-  :straight t)
-(which-key-mode)
-(which-key-setup-minibuffer)
-
-(use-package avy
-  :straight t
-  :bind (("C-'" . avy-goto-char-timer)
-         ("C-:" . avy-goto-line)))
 
 (use-package dockerfile-mode
   :straight t

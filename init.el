@@ -92,12 +92,17 @@
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq fci-rule-column 100)
 (set-window-scroll-bars (minibuffer-window) nil nil)
+(setq native-comp-async-report-warnings-errors nil)
 
 ;; TODO double check that this is doing what I think it's doing
 (setq backup-directory-alist
       `((".*" . , temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*", temporary-file-directory t)))
+
+;; I use this a lot but I think I'm overwriting completion at point here? This
+;; may need to change
+(global-set-key "\M-/" 'hippie-expand)
 
 ;; Started using general to define keymaps based on a blog post
 ;; If it's convenient I'll convert all custom mappings to use it
@@ -243,10 +248,21 @@
   :bind (("C-'" . avy-goto-char-timer)
          ("C-:" . avy-goto-line)))
 
+(use-package dockerfile-mode
+  :straight t
+  :mode "\\Dockerfile*//")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; Completion framework
+;; Core Stack
+;;
+;; This section has the core stack for completion. This is the major change from my last
+;; init, I was using helm and company mode extensively prior to this.
+;;
+;; This switch is to a core stack of: vertico, orderless (easily swappable), consult, corfu
+;;
+;; marginalia is included to enhance these modes, and I'm including embark on
+;; the core stack as well based on the little I've used it so far.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -566,18 +582,30 @@
   (setq tab-always-indent 'complete))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Coding Config
+;;
+;; This section should have the bulk of the config for languages, starting with
+;; some cross language stuff then the specific language packages
+;;
+;; As of right now I'm trying out eglot instead of lsp-mode, if I switch back
+;; LSP will be set up and configured here as well
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package dockerfile-mode
-  :straight t
-  :mode "\\Dockerfile*//")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; General setup
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package smart-shift
   :straight (smart-shift :type git :host github :repo "hbin/smart-shift"))
 
 (use-package dtrt-indent
   :straight (dtrt-indent :type git :host github :repo "jscheid/dtrt-indent"))
-
-(global-set-key "\M-/" 'hippie-expand)
 
 (use-package smartparens
   :straight t)
@@ -586,6 +614,12 @@
 
 (global-set-key (kbd "C-)") 'sp-forward-slurp-sexp)
 (global-set-key (kbd "M-s") 'sp-splice-sexp)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Common Lisp
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package sly
   :straight t
@@ -598,6 +632,11 @@
 (add-hook 'lisp-mode-hook #'eldoc-mode)
 (add-hook 'lisp-mode-hook #'subword-mode)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Emacs Lisp
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (add-hook 'emacs-lisp-mode-hook #'smartparens-mode)
 (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
@@ -606,6 +645,13 @@
 (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
 (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
 (add-hook 'emacs-lisp-mode-hook #'subword-mode)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Clojure
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package clojure-mode
   :straight t
@@ -628,7 +674,7 @@
   (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
 
-(setq native-comp-async-report-warnings-errors nil)
+
 
 (defun xml-format ()
   (interactive)

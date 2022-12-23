@@ -8,3 +8,7 @@ straight
 transient
 projectile-bookmarks.eld
 settings.el
+eln-cache
+history
+projectile.cache
+projects

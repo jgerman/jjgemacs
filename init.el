@@ -399,8 +399,7 @@
   (vertico-multiform-mode)
 
   (setq vertico-multiform-commands
-	'((consult-imenu buffer indexed)
-	  (execute-extended-command unobtrusive)))
+	'((consult-imenu buffer indexed)))
 
   (setq vertico-multiform-categories
 	'(;;(file grid)

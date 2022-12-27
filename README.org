@@ -80,3 +80,22 @@ Something I noticed when pushing a branch, in my old config a new branch's
 remote would automatically be set to origin/branch-name, the first new branch I
 pushed up after switching was pointing at master (and I assume would point at
 main). Something to keep an eye on.
+
+*** Eglot
+
+I do like the simplicity of eglot but it's not easy to see the warnings. I can
+customize that, but before I start tweaking things I want to play with them as
+they are out of the box.
+
+
+*** Select db org
+
+I'm getting an error when I use my select db org file command. I don't know for
+sure that this started with the config change and it doesn't seem to stop the
+file from loading or from executing. Still needs to be fixed.
+
+
+* Workflow Notes
+
+As I find ways to do things in this new workflow I intend to record them here.
+That way I'm capturing the things I do the most for the next re-write/package change etc.

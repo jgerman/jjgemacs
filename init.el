@@ -291,8 +291,23 @@
 (use-package multiple-cursors
   :straight t)
 
- (use-package graphql-mode
-    :straight t)
+(use-package graphql-mode
+  :straight t)
+
+;; if I get rid of kmonad I have to get rid of this too it's already iffy due to
+;; the way I type, I've had actions occurring on screen I don't want
+;; ultimately home row mods would be nice though...
+(use-package kbd-mode
+  :straight (keyboard-mode :type git :host github :repo "kmonad/kbd-mode"))
+
+(add-to-list 'auto-mode-alist '("\\.kbd\\'" . restclient-mode))
+
+;; trying out boon mode as a model editing suite, don't want full on evil
+;; ultimately rolling my own modal may be best for me but we'll see
+(use-package boon
+  :straight t)
+
+(require 'boon-qwerty)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -781,7 +796,7 @@
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
   (add-hook 'clojure-mode-hook #'eglot-ensure)
-  )
+  :bind (("C-!" . lispy-ace-paren)))
 
 (use-package cider
   :straight t
@@ -952,3 +967,10 @@
 (load (locate-user-emacs-file "github.el") nil :nomessage)
 
 (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Additional keymaps
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

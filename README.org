@@ -1,6 +1,7 @@
 * My Init
 
-This is my Emacs config, re-write at the end of 2022.
+This is my Emacs config, re-write at the end of 2022. Nothing of real importance
+is outside of init.el right now though some of my elisp files are included.
 
 For now I've moved on from a literate config, but I may very well move back. As
 I converted my old config to the new there were things I found that I can't

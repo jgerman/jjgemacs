@@ -302,12 +302,111 @@
 
 (add-to-list 'auto-mode-alist '("\\.kbd\\'" . restclient-mode))
 
-;; trying out boon mode as a model editing suite, don't want full on evil
-;; ultimately rolling my own modal may be best for me but we'll see
-(use-package boon
+(use-package meow
   :straight t)
 
-(require 'boon-qwerty)
+(defun meow-setup ()
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow-motion-overwrite-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   ;; SPC j/k will run the original command in MOTION state.
+   '("j" . "H-j")
+   '("k" . "H-k")
+   ;; Use SPC (0-9) for digit arguments.
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("/" . meow-keypad-describe-key)
+   '("?" . meow-cheatsheet))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-goto-line)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore)))
+
+(require 'meow)
+(meow-setup)
+;;(meow-global-mode 1)
+
+;; leaving meow in the file for now but it - doesn't appear to play well with
+;; smart parens (using the fake cursors) - doesn't evaluate symbols correctly in
+;; clojure (keywords specifically and only in beacon mode which is odd) - I
+;; don't think I need it for movement, my current thinking is to bind C-c l as a
+;; leader for common lisp editing and movement commands: smartparens, consult
+;; imenu, avy line, lispy-ace-window
+;;
+;; However, when editing normal text I can see meow being useful for recording
+;; macros across lines maybe? So that small bit may be something I steal. If I
+;; can turn on meow to make a selection across lines then use beacon just do to
+;; the editing maybe?
+;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -796,7 +895,14 @@
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
   (add-hook 'clojure-mode-hook #'eglot-ensure)
-  :bind (("C-!" . lispy-ace-paren)))
+  :bind (("C-!" . lispy-ace-paren)
+         ("C-c l l" . lispy-ace-paren)
+         ("C-c l g" . avy-goto-line)
+         ("C-c l i" . consult-imenu)
+         ("C-c l r" . raise-sexp)
+         ("C-c l s" . sp-forward-slurp-sexp)
+         ("C-c l b" . sp-forward-barf-sexp)
+         ("C-c l n" . eglot-rename)))
 
 (use-package cider
   :straight t

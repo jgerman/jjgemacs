@@ -172,7 +172,10 @@
   :straight t
   :hook (after-init . doom-modeline-mode)
   :init
-  (setq doom-modeline-minor-modes (featurep 'minions)))
+  (setq doom-modeline-minor-modes (featurep 'minions))
+  (setq doom-modeline-hud t)
+  (setq doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (setq doom-modeline-vcs-max-length 25))
 
 (use-package hl-line
   :straight t
@@ -246,9 +249,16 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package treemacs
+  :straight t)
+
 (use-package markdown-mode
   :straight t
   :mode ("\\.md\\'" . markdown-mode))
+
+(use-package yaml-mode
+  :straight t
+  :mode ("\\.ya?ml\\'" . yaml-mode))
 
 (use-package git-gutter+
   :straight t
@@ -763,10 +773,10 @@
   ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
    (corfu-auto t)                 ;; Enable auto completion
   ;; (corfu-separator ?\s)          ;; Orderless field separator
-  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  (corfu-quit-at-boundary 'separator)   ;; Never quit at completion boundary
   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
   ;; (corfu-preview-current nil)    ;; Disable current candidate preview
-  ;; (corfu-preselect-first nil)    ;; Disable candidate preselection
+  (corfu-preselect-first nil)    ;; Disable candidate preselection
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
 
@@ -779,7 +789,19 @@
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
    :init
-  (global-corfu-mode))
+   (global-corfu-mode))
+
+(use-package cape
+  :straight t
+  :defer 10
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  :config
+  ;; taken from the cape configurations
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -813,6 +835,43 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; Coding Config
+;;
+;; This section should have the bulk of the config for languages, starting with
+;; some cross language stuff then the specific language packages
+;;
+;; This is the LSP setup since I'm still not sure which I want to go with...
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; this was the first attempt, completions weren't working quite right
+;; (use-package lsp-mode
+;;   :straight t
+;;   :commands (lsp lsp-deferred)
+;;   :init
+;;   (setq lsp-keymap-precix "C-c l")
+;;   (setq read-process-output-max (* 1024 1024))
+;;   :custom
+;;   (lsp-idle-delay 0.6)
+;;   :config
+;;   (lsp-enable-which-key-integration)
+;;   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+;; (use-package lsp-ui
+;;   :straight t
+;;   :commands lsp-ui-mode)
+
+
+;; (set lsp-completion-provider :none)
+;; (defun corfu-lsp-setup ()
+;;   (setq-local completion-styles '(orderless)
+;;               completion-category-defaults nil))
+
+;; (add-hook 'lsp-mode-hook #'corfu-lsp-setup)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; General setup
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -827,9 +886,6 @@
   :straight t)
 
 (require 'smartparens-config)
-
-(global-set-key (kbd "C-)") 'sp-forward-slurp-sexp)
-(global-set-key (kbd "M-s") 'sp-splice-sexp)
 
 ;; I can't seem to get the hang of turning this on for lisps all the time but I
 ;; intend to use bits of the package (like lispy-avy)
@@ -847,6 +903,7 @@
 (defun colorize-compilation-buffer ()
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -886,6 +943,8 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(global-set-key (kbd "C-)") 'sp-forward-slurp-sexp)
+(global-set-key (kbd "M-s") 'sp-splice-sexp)
 (use-package clojure-mode
   :straight t
   :config
@@ -896,13 +955,15 @@
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
   (add-hook 'clojure-mode-hook #'eglot-ensure)
   :bind (("C-!" . lispy-ace-paren)
-         ("C-c l l" . lispy-ace-paren)
-         ("C-c l g" . avy-goto-line)
-         ("C-c l i" . consult-imenu)
-         ("C-c l r" . raise-sexp)
-         ("C-c l s" . sp-forward-slurp-sexp)
-         ("C-c l b" . sp-forward-barf-sexp)
-         ("C-c l n" . eglot-rename)))
+        ("C-c l l" . lispy-ace-paren)
+        ("C-c l g" . avy-goto-line)
+
+        ("C-c l i" . consult-imenu)
+        ("C-c l r" . raise-sexp)
+        ("C-c l s" . sp-forward-slurp-sexp)
+        ("C-c l b" . sp-forward-barf-sexp)
+        ("C-c l n" . eglot-rename)
+        ("C-c p s g" . consult-ripgrep)))
 
 (use-package cider
   :straight t
@@ -925,6 +986,8 @@
 
   (add-hook 'clojure-mode-hook #'my-clj-refactor-hook)
 
+;; set babashka files to open in clojure mode
+(add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Schemes
@@ -1075,6 +1138,14 @@
 (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
 
 
+;; since I'm not using helm find file adding this advice
+;; TODO change this so it asks first
+(defadvice find-file (before make-directory-maybe (filename &optional wildcards) activate)
+  "Create parent directory if not exists while visiting file."
+  (unless (file-exists-p filename)
+    (let ((dir (file-name-directory filename)))
+      (unless (file-exists-p dir)
+        (make-directory dir t)))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Additional keymaps

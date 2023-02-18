@@ -52,7 +52,7 @@
 
 ;; Fonts and sizes
 
-(defvar *my-font-size* 100)
+(defvar *my-font-size* 120)
 (when (= (display-pixel-width) 1920)
   (setq *my-font-size* 110))
 (when (= (display-pixel-width) 3456)
@@ -174,7 +174,7 @@
   :init
   (setq doom-modeline-minor-modes (featurep 'minions))
   (setq doom-modeline-hud t)
-  (setq doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (setq doom-modeline-buffer-file-name-style 'relative-from-project)
   (setq doom-modeline-vcs-max-length 25))
 
 (use-package hl-line
@@ -963,6 +963,7 @@
         ("C-c l s" . sp-forward-slurp-sexp)
         ("C-c l b" . sp-forward-barf-sexp)
         ("C-c l n" . eglot-rename)
+        ("C-c l a" . eglot-code-actions)
         ("C-c p s g" . consult-ripgrep)))
 
 (use-package cider

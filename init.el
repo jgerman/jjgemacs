@@ -28,7 +28,7 @@
 ;; I keep all my checked out projects under a development directory, including my config
 ;; and third party repos I clone
 (defconst *development-dir* "~/development/")
-(defconst *install-dir* "~/development/jgerman/jjgemacs_v2/") ;; TODO change me when I merge this to main
+(defconst *install-dir* "~/development/jgerman/jjgemacs/") ;; TODO change me when I merge this to main
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

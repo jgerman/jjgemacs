@@ -1,0 +1,102 @@
+* My Init
+
+This is my Emacs config, re-write at the end of 2022. Nothing of real importance
+is outside of init.el right now though some of my elisp files are included.
+
+For now I've moved on from a literate config, but I may very well move back. As
+I converted my old config to the new there were things I found that I can't
+remember why or where they came from. I can keep track of that stuff via
+comments in an elisp file but org mode should make it easier... though
+apparently not easy enough for me to do it last time.
+
+My main reason for changing things was to move to the newer stack that's popular
+right now with packages like:
+
+- vertico
+- corfu
+- marginalia
+- consult
+- embark
+
+After playing with them for a bit in a branch I liked what I was able to do, so
+I'm going to stick with it. Helm and Company have been the center of my config
+for a long time so it's a change for fun as much as for function.
+
+I've also switched to eglot for (at least) clojure. Using built ins when they're
+available is what I'm aiming for and lsp-mode, while very good, was a bit too
+cluttered and felt heavyweight. It's definitely once of the packages I might go
+back to.
+
+Some stuff here is just left over from the old config, I'm leaving it
+intentionally. It's easier to look at my old settings.org directly for now in
+case I find some functionality lacking that I didn't pull over. Later I'll
+delete it and I can always look back in git to see if I missed something.
+
+Most of the old config was ported over (that wasn't helm, company, or lsp
+related) but I could have missed something.
+
+
+Aside from the core stack, moving away from projectile and lsp-mode are the two
+biggest changes. Both of which could be reverted if necessary.
+
+** Things I want to sort out
+
+*** Embark
+
+I like having a keyboard based, context sensitive "right click", but I'd like to
+customize it a bit more. I can envision throwing a lot of what it provides away
+and just using the idea to help edit code in my workflow. Specifically, right
+now, when it is invoked it correctly grabs a symbol in clojure-mode, when I want
+it to either treat it as a symbol and an sexp or be able to toggle between them.
+Of all things I've used Embark for the smartparens commands seem like the first
+thing (e.g. raise-sexp) I'd be likely to grab on to.
+
+*** Consult
+
+I almost re-installed projectile simply for grepping a project. Then I dug into
+consult a bit, in the current stack consult-ripgrep gives me an even better
+workflow. There's a lot in consult that I don't know about or understand but I
+have the feeling that there's a lot of power there I'm leaving on the table.
+
+*** El-doc
+
+I like having my function signatures shown in the echo area, I don't like when
+the echo area jumps around in size because the clj docs are being pulled in and
+displayed in markdown. I'd like to turn that off completely (though pulling clj
+blocks into a buffer, preferably closeable with a simple 'q', on demand is
+something I do want).
+
+*** Vertico
+
+I still need explore Vertico quite a bit. Multi-form mode is cool, but I don't
+like it set to unobtrusive since that gets rid of the value marginalia provides,
+but it also looks odd right now. I'm getting a popup for completions, which I
+don't think is corfu, but could be, and it doesn't stretch across the frame.
+Tolerable for now, but something to run down. It wasn't even noticeable until I
+set hl-line on.
+
+*** Magit ordering
+
+Something I noticed when pushing a branch, in my old config a new branch's
+remote would automatically be set to origin/branch-name, the first new branch I
+pushed up after switching was pointing at master (and I assume would point at
+main). Something to keep an eye on.
+
+*** Eglot
+
+I do like the simplicity of eglot but it's not easy to see the warnings. I can
+customize that, but before I start tweaking things I want to play with them as
+they are out of the box.
+
+
+*** Select db org
+
+I'm getting an error when I use my select db org file command. I don't know for
+sure that this started with the config change and it doesn't seem to stop the
+file from loading or from executing. Still needs to be fixed.
+
+
+* Workflow Notes
+
+As I find ways to do things in this new workflow I intend to record them here.
+That way I'm capturing the things I do the most for the next re-write/package change etc.

@@ -1,43 +1,24 @@
 * Overview
-This is my init rewrite. A vanilla init.el was getting out of control and
-maybe going back to a literate style with org will help. If this gets to be
-annoying (for instance not being able to just eval buffer) I can always try
-outline mode.
+Rewrite at the end of 2022, beginning of 2023. Time to evaluate what I still
+need and try out some new packages.
 
-This is a work in progress (but isn't every init?). I'm not sure everything works like it did in my old
-init (nor am I sure I want it to). So not everything is likely to be 100% yet.
-
-* TODOS
-** TODO Line numbers don't show up in org mode.
-** TODO better organization
+This file isn't used, I'm going back to a vanilla init for awhile.
 
 * Basics
 ** GC Cons Threshhold
+
+I've bumped this up mainly because of lsp-mode performance suggestions. I may
+turn it off entirely during init in order to get a faster start.
+
 #+begin_src emacs-lisp :results silent
 (setq gc-cons-threshold 100000000)
 #+end_src
 
-** OS X
-   I'm used to things a certain way. Also, unlike a lot of Emacs users I
-   prefer to use CapsLock as meta instead of Ctrl. Which I set via the
-   OSX pref pane. The original reason for that was that on mechanical
-   keyboards dropping the your hand and hitting Ctrl was easy, now it's
-   just habit.
-
-  #+begin_src emacs-lisp
-    (setq mac-option-modifier 'super)
-    (setq mac-command-modifier 'meta)
-    (setq mac-pass-command-to-system 't)
-
-    (define-key global-map [?\s-v] 'yank)
-    (define-key global-map [?\s-c] 'kill-ring-save)
-    (define-key global-map [?\s-x] 'kill-region)
-
-    (setq select-enable-clipboard t)
-  #+end_src
 ** Set Up A Convenient way to get to my config file
+
+This is highly specific to my machine, but I rely on it to get to my config.
   #+begin_src emacs-lisp
-    (defconst *install-dir* "~/jjgemacs/")
+    (defconst *install-dir* "~/development/jjgemacs_v2/")
 
     (defun find-config ()
       "Edit config.org"
@@ -456,6 +437,7 @@ Replace the normal window switch with ace-select window.
 (global-set-key (kbd "C-x o") 'ace-select-window)
 #+end_src
 
+
 ** Org Mode
 
    First things first, require org tempo to get the easy templates back. This
@@ -560,7 +542,7 @@ Setting up org roam to get my notes in order.
 *** Ob async
 #+begin_src emacs-lisp
   (use-package ob-async
-    :straight (ob-async :type git :host github :repo "astahlman/ob-async"))
+    :straight (ob-async :type git :host ogithub :repo "astahlman/ob-async"))
 #+end_src
 
 *** Trying out a slack markdown export

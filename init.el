@@ -100,8 +100,15 @@
 (load custom-file)
 
 ;; TODO double check that this is doing what I think it's doing
-(setq backup-directory-alist
-      `((".*" . , temporary-file-directory)))
+;; Having trouble with long file names, for now disabling auto save and backup
+;; there was also a reddit post about how doom hashes the name to make it shorter... look into that
+;; https://wilkesley.org/~ian/xah/emacs/emacs_set_backup_into_a_directory.html
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+;;(setq backup-directory-alist
+;;      `((".*" . , temporary-file-directory)))
+
+
 (setq auto-save-file-name-transforms
       `((".*", temporary-file-directory t)))
 

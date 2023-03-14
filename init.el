@@ -58,7 +58,7 @@
 (when (= (display-pixel-width) 3456)
   (setq *my-font-size* 100))
 (when (= (display-pixel-width) 3840)
-  (setq *my-font-size* 120))
+  (setq *my-font-size* 100))
 (when (= (display-pixel-width) 2560)
   (setq *my-font-size* 110))
 (message (concat "Setting font to: " (number-to-string *my-font-size*)))
@@ -160,6 +160,23 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; doom vibrant was looking too washed out
+;; doom-ayu-dark isn't bad but I can't see the comments
+;; doom-ir-black is a strong contender
+;; doom-laserwave is ok
+;; material dark is decent
+;; meltbus is monocrhomatic but I kind of like it
+;; molokai isn't bad,
+;; doom monokai octagon ok
+;; monokai pro
+;; monokai spectrum
+;; moonlight
+;; nord might be too contrasty but I kinda like the highlighted current line
+;; nova contrasty but not bad
+;; oceanic-next
+;; one
+;; outrun-electric is good except the line numbers are invisible except the current
+;; wilmersdorf not bad but same issue with background too light gray
 (use-package doom-themes
   :straight t
   :config
@@ -167,8 +184,8 @@
     (setq doom-themes-enable-bold t
 	  doom-themes-enable-italic t
 ;;	  doom-vibrant-brighter-modeline t
-	  doom-vibrant-brighter-comments t)
-    (load-theme 'doom-vibrant t)))
+	  doom-vibrant-brighter-comments nil)
+    (load-theme 'doom-vibrant)))
 
 ;; Highlight the current paren in bold red
 (require 'paren)
@@ -183,6 +200,10 @@
   (setq doom-modeline-hud t)
   (setq doom-modeline-buffer-file-name-style 'relative-from-project)
   (setq doom-modeline-vcs-max-length 25))
+
+;; "#2e2c2b"
+(custom-set-faces
+ '(default ((t (:background "#1c1b1b")))))
 
 (use-package hl-line
   :straight t

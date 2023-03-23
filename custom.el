@@ -10,7 +10,8 @@
  '(global-corfu-mode t)
  '(python-shell-interpreter "python3")
  '(safe-local-variable-values
-   '((cider-clojure-cli-global-options . -A:dev:test)
+   '((cider-clojure-cli-global-options . -A:env/repl:test)
+     (cider-clojure-cli-global-options . -A:dev:test)
      (cider-clojure-cli-global-options . -A:dev)
      (cider-clojure-cli-global-options . -A:env/repl)
      (cider-clojure-cli-global-options . -A:env/test:env/dev)

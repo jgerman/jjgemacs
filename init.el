@@ -78,6 +78,7 @@
 ;; convenient way to get to the config
 (defun find-config ()
   (interactive)
+
   (find-file (concat *install-dir* "init.el")))
 
 (global-set-key (kbd "C-c I") 'find-config)

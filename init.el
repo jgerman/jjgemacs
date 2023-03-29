@@ -1024,10 +1024,19 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package geiser-guile
+  :straight t)
+
+(use-package geiser-mit
+  :straight t)
+
+(use-package geiser-racket
+  :straight t)
+
 (use-package geiser
   :straight t
   :custom
-  (geiser-active-implementations '(guile mit))
+  (geiser-active-implementations '(racket guile mit))
   (geiser-set-default-implementation 'mit))
 
 (use-package racket-mode

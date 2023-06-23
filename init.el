@@ -1163,7 +1163,7 @@
 
 (defun my-git-commit-insert-branch ()
   (when (tw-project-p)
-    (insert (tw-branch-git-subj))))U
+    (insert (tw-branch-git-subj))))
 
 (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
 

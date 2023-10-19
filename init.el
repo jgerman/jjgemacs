@@ -18,6 +18,19 @@
 
 (straight-use-package 'use-package)
 
+(use-package org :straight t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; MAc
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq mac-option-modifier 'super)
+(setq mac-command-modifier 'meta)
+(setq select-enable-clipboard t)
+(setq mac-pass-command-to-system nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -58,9 +71,11 @@
 (when (= (display-pixel-width) 3456)
   (setq *my-font-size* 100))
 (when (= (display-pixel-width) 3840)
-  (setq *my-font-size* 100))
+  (setq *my-font-size* 120)) ;; changing this for the max probably screws up linux.. why??
 (when (= (display-pixel-width) 2560)
   (setq *my-font-size* 110))
+(when (= (display-pixel-width) 1600)
+  (setq *my-font-size* 120))
 (message (concat "Setting font to: " (number-to-string *my-font-size*)))
 (defvar *my-font* "")
 (setq *my-font* "Hack")
@@ -1018,6 +1033,18 @@
 
 ;; set babashka files to open in clojure mode
 (add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; cider-storm test
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;(use-package cider-storm
+;;  :straight (cider-storem :type git :host github :repo "jpmonettas/cider-storm"))
+;;(define-key cider-mode-map (kbd "C-c C-f") 'cider-storm-map)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Schemes
@@ -1167,14 +1194,18 @@
 
 (add-hook 'git-commit-setup-hook 'my-git-commit-insert-branch)
 
-(load "~/.emacs-dbs.el")
-(load "~/development/tradeswell/tradeswell-emacs/tradeswell.el" t)
+;;(load "~/.emacs-dbs.el")
+;;(load "~/development/tradeswell/tradeswell-emacs/tradeswell.el" t)
 
 ;; I usually just do this via dmenu
 ;; I should namespace the functions in it and change the name
 (load (locate-user-emacs-file "github.el") nil :nomessage)
 
 (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
+
+;; (concat *install-dir* "custom.el")
+(when (file-exists-p "~/.tradeswell/.onepassword.el")
+  (load "~/.tradeswell/.onepassword.el" nil :nomessage))
 
 
 ;; since I'm not using helm find file adding this advice

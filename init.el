@@ -297,7 +297,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package treemacs
-  :straight t)
+  :straight t
+  :init
+  (setq treemacs-project-follow-mode t)
+  (setq treemacs-display-current-project-exclusively t))
 
 (global-set-key [f5] 'treemacs)
 
@@ -887,6 +890,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; God Mode (trial)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (use-package god-mode
+;;   :straight t
+;;   :bind
+;;   (("<escape>" . god-local-mode)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; Coding Config
 ;;
 ;; This section should have the bulk of the config for languages, starting with
@@ -896,6 +911,27 @@
 ;; LSP will be set up and configured here as well
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; (use-package lsp-mode
+;;   :straight t
+;;   :init
+;;   (setq lsp-keymap-prefix "C-c l")
+;;   :hook
+;;   (clojure-mode . lsp)
+;;   (lsp-mode . lsp-enable-which-key-integration)
+;;   :commands lsp)
+
+;; (use-package lsp-ui
+;;   :straight t
+;;   :commands lsp-ui)
+
+;; (use-package lsp-treemacs
+;;   :straight t
+;;   :commands lsp-treemacs
+;;   :init
+;;   (setq lsp-treemacs-sync-mode 1))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -956,6 +992,12 @@
 ;; intend to use bits of the package (like lispy-avy)
 (use-package lispy
   :straight t)
+
+;; (eval-after-load "lispy"
+;;   '(progn
+;;      ;; I'd like square brackets to do their standard insert
+;;      (define-key lispy-mode-map (kbd "C-[") 'lispy-backward)
+;;      (define-key lispy-mode-map (kbd "C-]") 'lispy-forward)))
 
 (use-package repl-toggle
   :straight (repl-toggle :type git :host github :repo "tomterl/repl-toggle")
@@ -1019,17 +1061,18 @@
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode)
   (add-hook 'clojure-mode-hook #'eglot-ensure)
-  :bind (("C-!" . lispy-ace-paren)
-        ("C-c l l" . lispy-ace-paren)
-        ("C-c l g" . avy-goto-line)
+  ;;(add-hook 'clojure-mode-hook #'lispy-mode)
+ :bind (("C-!" . lispy-ace-paren)
+       ("C-c l l" . lispy-ace-paren)
+       ("C-c l g" . avy-goto-line)
 
-        ("C-c l i" . consult-imenu)
-        ("C-c l r" . raise-sexp)
-        ("C-c l s" . sp-forward-slurp-sexp)
-        ("C-c l b" . sp-forward-barf-sexp)
-        ("C-c l n" . eglot-rename)
-        ("C-c l a" . eglot-code-actions)
-        ("C-c p s g" . consult-ripgrep)))
+       ("C-c l i" . consult-imenu)
+       ("C-c l r" . raise-sexp)
+       ("C-c l s" . sp-forward-slurp-sexp)
+       ("C-c l b" . sp-forward-barf-sexp)
+       ("C-c l n" . eglot-rename)
+       ("C-c l a" . eglot-code-actions)
+    ("C-c p s g" . consult-ripgrep)))
 
 (use-package cider
   :straight t
@@ -1054,7 +1097,6 @@
 
 ;; set babashka files to open in clojure mode
 (add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1087,12 +1129,16 @@
   (geiser-active-implementations '(racket guile mit))
   (geiser-set-default-implementation 'mit))
 
-(use-package racket-mode
-  :straight t)
+;;(use-package racket-mode
+;;  :straight t)
 
-(add-hook 'racket-mode-hook #'smartparens-mode)
-(add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
+;;(add-hook 'racket-mode-hook #'smartparens-mode)
+;;(add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
+;;(add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
+
+(add-hook 'geiser-mode-hook #'smartparens-mode)
+(add-hook 'geiser-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'geiser-mode-hook #' turn-on-smartparens-strict-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

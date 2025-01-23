@@ -594,6 +594,8 @@
       '(("d" "default" entry "* %<%I:%M %p>: %?"
          :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
 
+(use-package consult-org-roam
+  :straight t)
 ;; '(("d" "default" plain
 ;;    "%?"
 ;;    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")

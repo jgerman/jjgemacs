@@ -1087,6 +1087,9 @@
 
 (use-package s3ed
   :straight t)
+
+(use-package axe
+  :straight t)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Terminal Emulation (trial)
@@ -1413,6 +1416,25 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; LUA
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package lua-mode
+  :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Pico 8
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; not sure what we're going to do here, I've cloned the repo locally but the project
+;; is 2 years stale so I may need to fork it and turn it into a proper package
+;; requires lua
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; Kotlin
 ;;
 ;; Virtually no setup here, my old config used lsp-mode for kotlin, I have no idea how well
@@ -1630,6 +1652,11 @@ _~_: modified
   (interactive)
   )
 
+;; get now
+(defun now ()
+  (interactive)
+  (insert (format-time-string "%Y-%m-%d")))
+
 ;; generate a random currency float
 (defun random-digit ()
   (interactive)
@@ -1646,3 +1673,7 @@ _~_: modified
     "."
     (random-digit)
     (random-digit))))
+
+;; auto repl for babel?
+
+(cider-jack-in '(:project-dir "/Users/jgerman/development/jgerman/emacs-utility-project/"))

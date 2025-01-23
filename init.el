@@ -71,7 +71,7 @@
 (when (= (display-pixel-width) 3456)
   (setq *my-font-size* 100))
 (when (= (display-pixel-width) 3840)
-  (setq *my-font-size* 120)) ;; changing this for the max probably screws up linux.. why??
+  (setq *my-font-size* 125)) ;; changing this for the mac probably screws up linux.. why??
 (when (= (display-pixel-width) 2560)
   (setq *my-font-size* 110))
 (when (= (display-pixel-width) 1600)
@@ -81,6 +81,28 @@
 (setq *my-font* "Hack")
 (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
 (set-frame-font *my-font* nil t)
+
+(custom-theme-set-faces
+ 'user
+ '(variable-pitch ((t (:family "Hack" :height 180 :weight thin))))
+ '(fixed-pitch ((t (:family "Hack" :height 125)))))
+
+ (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+
+  (add-hook 'org-mode-hook 'variable-pitch-mode)
 
 ;; how do we treat tabs?
 (setq-default indent-tabs-mode nil)
@@ -186,11 +208,11 @@
 
 ;; doom vibrant was looking too washed out
 ;; doom-ayu-dark isn't bad but I can't see the comments
-;; doom-ir-black is a strong contender
+;; doom-ir-black is a strong contender still good
 ;; doom-laserwave is ok
 ;; material dark is decent
 ;; meltbus is monocrhomatic but I kind of like it
-;; molokai isn't bad,
+;; molokai isn't bad, but don't like the full line, comments still too dark, like the variable font sizes for headings
 ;; doom monokai octagon ok
 ;; monokai pro
 ;; monokai spectrum
@@ -201,15 +223,35 @@
 ;; one
 ;; outrun-electric is good except the line numbers are invisible except the current
 ;; wilmersdorf not bad but same issue with background too light gray
+
+;; doom-vibrant was my last most common
+;; doom-ir-black but with variable font sizes? and brighter comments
+
 (use-package doom-themes
   :straight t
   :config
   (progn
     (setq doom-themes-enable-bold t
 	  doom-themes-enable-italic t
-;;	  doom-vibrant-brighter-modeline t
-	  doom-vibrant-brighter-comments nil)
-    (load-theme 'doom-vibrant)))
+	  doom-vibrant-brighter-modeline t
+	  doom-vibrant-brighter-comments nil
+          doom-ir-black-brighter-comments t
+          doom-ir-black-brighter-modeline t)
+    ;;(load-theme 'doom-vibrant)
+      (load-theme 'doom-ir-black)))
+
+;; wash out the background a bit
+;; (custom-set-faces
+;;  '(default ((t (:background "#1c1b1b")))))
+
+;; (use-package solarized-theme
+;;   :straight t
+;;   :config
+;;   (setq solarized-distinct-fringe-background nil)
+;;   (setq x-underline-at-descent-line nil)
+;;   (setq solarized-high-contrast-mode-line nil)
+;;   (load-theme 'solarized-dark t))
+
 
 ;; Highlight the current paren in bold red
 (require 'paren)
@@ -225,9 +267,7 @@
   (setq doom-modeline-buffer-file-name-style 'relative-from-project)
   (setq doom-modeline-vcs-max-length 25))
 
-;; "#2e2c2b"
-(custom-set-faces
- '(default ((t (:background "#1c1b1b")))))
+
 
 (use-package hl-line
   :straight t
@@ -1616,6 +1656,9 @@ _~_: modified
 (when (file-exists-p "~/.tradeswell/.onepassword.el")
   (load "~/.tradeswell/.onepassword.el" nil :nomessage))
 
+(when (file-exists-p (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+  (load (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+  (tw/create-db-connections))
 
 ;; since I'm not using helm find file adding this advice
 ;; TODO change this so it asks first
@@ -1625,6 +1668,7 @@ _~_: modified
     (let ((dir (file-name-directory filename)))
       (unless (file-exists-p dir)
         (make-directory dir t)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Random Code that should be pulled into a package
@@ -1677,5 +1721,5 @@ _~_: modified
     (random-digit))))
 
 ;; auto repl for babel?
-
+;; how are the ejc-sql buffers auto hidden?
 (cider-jack-in '(:project-dir "/Users/jgerman/development/jgerman/emacs-utility-project/"))

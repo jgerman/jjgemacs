@@ -71,7 +71,7 @@
 (when (= (display-pixel-width) 3456)
   (setq *my-font-size* 100))
 (when (= (display-pixel-width) 3840)
-  (setq *my-font-size* 125)) ;; changing this for the mac probably screws up linux.. why??
+  (setq *my-font-size* 120)) ;; changing this for the mac probably screws up linux.. why??
 (when (= (display-pixel-width) 2560)
   (setq *my-font-size* 110))
 (when (= (display-pixel-width) 1600)
@@ -85,7 +85,7 @@
 (custom-theme-set-faces
  'user
  '(variable-pitch ((t (:family "Hack" :height 180 :weight thin))))
- '(fixed-pitch ((t (:family "Hack" :height 125)))))
+ '(fixed-pitch ((t (:family "Hack" :height 120)))))
 
  (custom-theme-set-faces
    'user
@@ -561,11 +561,25 @@
   (setq dirvish-hide-details nil)
   (setq dired-listing-switches
         "-lah --almost-all --human-readable --group-directories-first --no-group"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Epubs
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package nov
+  :straight t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Org Mode Setup
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+(setq org-confirm-babel-evaluate nil)
 
 (require 'org-tempo)
 
@@ -641,6 +655,13 @@
 ;;    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
 ;;    :unnarrowed t))
 
+
+;; exports
+(use-package ox-slack
+  :straight t)
+
+(require 'ox-slack)
+(require 'ox-md)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Core Stack
@@ -1209,6 +1230,22 @@
 ;;   (setq lsp-treemacs-sync-mode 1))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Experimental gtel setup
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package gptel
+  :straight t
+  :config
+  (setq
+   gptel-model 'qwen2.5-coder
+   gptel-default-mode 'org-mode
+   gptel-backend (gptel-make-ollama "Ollama"
+                                    :host "localhost:11434"
+                                    :stream t
+                                    :models '(qwen2.5-coder))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1656,9 +1693,9 @@ _~_: modified
 (when (file-exists-p "~/.tradeswell/.onepassword.el")
   (load "~/.tradeswell/.onepassword.el" nil :nomessage))
 
-(when (file-exists-p (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
-  (load (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
-  (tw/create-db-connections))
+ (when (file-exists-p (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+   (load (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+   (tw/create-db-connections))
 
 ;; since I'm not using helm find file adding this advice
 ;; TODO change this so it asks first
@@ -1723,3 +1760,37 @@ _~_: modified
 ;; auto repl for babel?
 ;; how are the ejc-sql buffers auto hidden?
 (cider-jack-in '(:project-dir "/Users/jgerman/development/jgerman/emacs-utility-project/"))
+
+(defun wrap-region-with-string ()
+  "Prompt for a string and insert it at the beginning and end of the current region."
+  (interactive)
+  (let* ((input-str (read-string "Enter the string to wrap with: "))
+         (start (region-beginning))
+         (end (region-end)))
+    ;; Insert the string at the beginning of the region
+    (goto-char start)
+    (insert input-str)
+
+    ;; Move to the end of the region and insert the string again
+    (goto-char (+ end (length input-str)))
+    (insert input-str)))
+
+
+;; solo rpgs in emacs
+;; (use-package rpgdm-ironsworn
+;;   :straight (:local-repo "~/development/howardabrams/emacs-rpgdm")
+;;   :init
+;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-rpgdm")))
+
+;; (use-package emacs-ironsworn
+;;   :straight (:local-repo "~/development/howardabrams/emacs-ironsworn")
+;;   :init
+;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-ironsworn")))
+
+;; (use-package emacs-ironsworn
+;;   :straight (:local-repo "~/development/howardabrams/emacs-ironsworn")
+;;   :init
+;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-ironsworn")))
+
+;; (use-package egme
+;;   :straight (egme :type git :host github :repo "CategoryQ/EmacsGME"))

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Drive From env
+# key: call-drive-from-env
+# --
+#+CALL: drive-from-env(source="$1",dest="${2:local}", hash="$3")$0

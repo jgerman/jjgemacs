@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: cljdep
+# key: cljdep
+# --
+$1 {:mvn/version "$2"}$0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Malli Type
+# key: mallitype
+# --
+(def ${1:name}
+  (m/schema
+   [:map {:title "${2:title}"}
+    [$0]]))

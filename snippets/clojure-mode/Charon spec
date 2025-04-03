@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: Charon spec
+# key: charonspec
+# --
+(def specs
+  {:data-source $1
+   :data-type $2
+   :Manifest $3
+   :Fact Fact
+   :handler handle})

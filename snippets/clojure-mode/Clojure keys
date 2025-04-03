@@ -1,0 +1,4 @@
+# key: cljkeys
+# name: Clojure keys
+# --
+{:keys [$0]}

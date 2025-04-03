@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: dbblock
+# key: <sql
+# --
+#+begin_src sql :db-conn $1
+$0
+#+end_src

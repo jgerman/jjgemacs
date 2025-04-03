@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Greeks Redrive
+# key: call-redrive
+# --
+#+CALL: redrive-hash(hash="$1", stage="$2")$0

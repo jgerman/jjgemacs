@@ -175,6 +175,19 @@
 
 (global-set-key (kbd "C-x o") 'ace-select-window)
 
+;; window movement
+(global-set-key (kbd "C-M-S-s-j") 'windmove-down)
+(global-set-key (kbd "C-M-S-s-<down>") 'windmove-down)
+
+(global-set-key (kbd "C-M-S-s-k") 'windmove-up)
+(global-set-key (kbd "C-M-S-s-<up>") 'windmove-up)
+
+(global-set-key (kbd "C-M-S-s-h") 'windmove-left)
+(global-set-key (kbd "C-M-S-s-<left>") 'windmove-left)
+
+(global-set-key (kbd "C-M-S-s-l") 'windmove-right)
+(global-set-key (kbd "C-M-S-s-<right>") 'windmove-right)
+
 ;; ensure shell
 (use-package exec-path-from-shell
   :straight t
@@ -377,7 +390,7 @@
 
 (use-package avy
   :straight t
-  :bind (("C-'" . avy-goto-char-timer)
+  :bind (("C-'" . avy-goto-char)
          ("C-:" . avy-goto-line)))
 
 (use-package dockerfile-mode
@@ -1757,6 +1770,10 @@ _~_: modified
     (random-digit)
     (random-digit))))
 
+(defun copy-buffer-filename ()
+  (interactive)
+  (kill-new (buffer-file-name)))
+
 ;; auto repl for babel?
 ;; how are the ejc-sql buffers auto hidden?
 (cider-jack-in '(:project-dir "/Users/jgerman/development/jgerman/emacs-utility-project/"))
@@ -1775,6 +1792,13 @@ _~_: modified
     (goto-char (+ end (length input-str)))
     (insert input-str)))
 
+;; requires jet to be on the path
+;; rewrite this usihng raw elisp instead
+;; select a region
+;; C-u, M-| 'jet --from json --to edn --keywordize'
+;; then I typically C-c <space> to reformat
+(defalias 'json-region-to-edn
+   (kmacro "C-u M-| j e t SPC - - f r o m SPC j s o n SPC - - t o SPC c l <backspace> <backspace> e d n SPC - - k e y w o r d i z e <return> C-M-SPC M-% , <return> <return> ! C-c SPC"))
 
 ;; solo rpgs in emacs
 ;; (use-package rpgdm-ironsworn

@@ -18,8 +18,10 @@
 
 (straight-use-package 'use-package)
 
-(use-package org :straight t)
-
+(use-package org
+  :straight t
+  :custom
+  (org-startup-indented t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -82,27 +84,27 @@
 (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
 (set-frame-font *my-font* nil t)
 
-(custom-theme-set-faces
- 'user
- '(variable-pitch ((t (:family "Hack" :height 180 :weight thin))))
- '(fixed-pitch ((t (:family "Hack" :height 120)))))
+;; (custom-theme-set-faces
+;;  'user
+;;  '(variable-pitch ((t (:family "Hack" :height 180 :weight thin))))
+;;  '(fixed-pitch ((t (:family "Hack" :height 120)))))
 
- (custom-theme-set-faces
-   'user
-   '(org-block ((t (:inherit fixed-pitch))))
-   '(org-code ((t (:inherit (shadow fixed-pitch)))))
-   '(org-document-info ((t (:foreground "dark orange"))))
-   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-   '(org-link ((t (:foreground "royal blue" :underline t))))
-   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   '(org-property-value ((t (:inherit fixed-pitch))) t)
-   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+;;  (custom-theme-set-faces
+;;    'user
+;;    '(org-block ((t (:inherit fixed-pitch))))
+;;    '(org-code ((t (:inherit (shadow fixed-pitch)))))
+;;    '(org-document-info ((t (:foreground "dark orange"))))
+;;    '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+;;    '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+;;    '(org-link ((t (:foreground "royal blue" :underline t))))
+;;    '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+;;    '(org-property-value ((t (:inherit fixed-pitch))) t)
+;;    '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+;;    '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+;;    '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+;;    '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
-  (add-hook 'org-mode-hook 'variable-pitch-mode)
+;;   (add-hook 'org-mode-hook 'variable-pitch-mode)
 
 ;; how do we treat tabs?
 (setq-default indent-tabs-mode nil)
@@ -116,7 +118,8 @@
 (defun find-config ()
   (interactive)
 
-  (find-file (concat *install-dir* "init.el")))
+  ;;(find-file (concat *install-dir* "init.el"))
+  (my-init-switcher))
 
 (global-set-key (kbd "C-c I") 'find-config)
 
@@ -140,6 +143,8 @@
 (setq custom-file (concat *install-dir* "custom.el"))
 (load custom-file)
 
+(setq switch-to-buffer-obey-display-actions t)
+
 ;; TODO double check that this is doing what I think it's doing
 ;; Having trouble with long file names, for now disabling auto save and backup
 ;; there was also a reddit post about how doom hashes the name to make it shorter... look into that
@@ -162,18 +167,24 @@
 (use-package general
   :straight t)
 
-;; manage how pop up windows behave
+;; manage how pop up windows behave TODO why did this sudenly break, what even
+;; does it affect anymore? I don't think I'm using this at all anymore, when
+;; popwin-mode is enabled I get a bunch of dummy buffers
 (use-package popwin
   :straight t
   :config
-  (setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action))))
+  ;;(popwin-mode 1)
+  ;;(setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action)))
+  )
 
 ;; convenient window switching
 (use-package ace-window
   :straight t)
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 
-(global-set-key (kbd "C-x o") 'ace-select-window)
+;; use ace-select-window when you want to auto jump when there are only 2
+;; windows, ace-window to always select (which might play nicer with embark)
+(global-set-key (kbd "C-x o") 'ace-window)
 
 ;; window movement
 (global-set-key (kbd "C-M-S-s-j") 'windmove-down)
@@ -348,6 +359,17 @@
                     nil
                   '(display-buffer-same-window)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Forge
+;;
+;; Setup:
+;; git config --global github.user USERNAME
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package forge
+  :straight t
+  :after magit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -375,9 +397,32 @@
   :straight t
   :mode ("\\.md\\'" . markdown-mode))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Yaml mode
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package yaml-mode
   :straight t
   :mode ("\\.ya?ml\\'" . yaml-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Better yaml mode?
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package yaml-pro
+  :straight t)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Set up treesitter
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq treesit-language-source-alist
+      '((yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml")))
 
 ;; (use-package git-gutter+
 ;;   :straight t
@@ -391,6 +436,7 @@
 (use-package avy
   :straight t
   :bind (("C-'" . avy-goto-char)
+         ("C-c a" . avy-goto-char)
          ("C-:" . avy-goto-line)))
 
 (use-package dockerfile-mode
@@ -413,6 +459,9 @@
   :config
   (yas-global-mode 1))
 
+(use-package auto-yasnippet
+  :straight t)
+
 (use-package free-keys
   :straight t)
 
@@ -423,6 +472,8 @@
 (use-package graphql-mode
   :straight t)
 
+(use-package request
+  :straight t)
 ;; if I get rid of kmonad I have to get rid of this too it's already iffy due to
 ;; the way I type, I've had actions occurring on screen I don't want
 ;; ultimately home row mods would be nice though...
@@ -673,8 +724,18 @@
 (use-package ox-slack
   :straight t)
 
+(use-package org-modern
+  :straight t)
+
+;; potentiall add org-modern-indent?
+;; looking at this reddit post: https://www.reddit.com/r/emacs/comments/1aje6vt/beautifying_org_mode_in_emacs/
+
+
+
+;; verify these.. I don't use them any more and I'd like to
 (require 'ox-slack)
 (require 'ox-md)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Core Stack
@@ -1023,7 +1084,7 @@
 
 ;; Attempt at pointing to the manually built tree-sitter grammar
 ;; if this works it can probably be moved into the treesitter use-package config
-(setq treesit-extra-load-path '( "~/development/sogaiu/tree-sitter-clojure/dist"))
+;(setq treesit-extra-load-path '( "~/development/sogaiu/tree-sitter-clojure/dist"))
 
 ;; crashes emacs
 (use-package clojure-ts-mode
@@ -1033,69 +1094,69 @@
              :repo "clojure-emacs/clojure-ts-mode"))
 
 ;; do we need to use package if treesitter is already built in?
-(use-package treesit
-  :straight (treesit
-             :type git
-             :host github
-             :repo "tree-sitter/tree-sitter")
-  :mode (("\\.tsx\\'" . tsx-ts-mode))
-  :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-               (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
+;; (use-package treesit
+;;   :straight (treesit
+;;              :type git
+;;              :host github
+;;              :repo "tree-sitter/tree-sitter")
+;;   :mode (("\\.tsx\\'" . tsx-ts-mode))
+;;   :preface
+;;   (defun mp-setup-install-grammars ()
+;;     "Install Tree-sitter grammars if they are absent."
+;;     (interactive)
+;;     (dolist (grammar
+;;              ;; Note the version numbers. These are the versions that
+;;              ;; are known to work with Combobulate *and* Emacs.
+;;              '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+;;                (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+;;                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+;;                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+;;                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+;;                (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+;;                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+;;                (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+;;                (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+;;                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+;;                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+;;                (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+;;       (add-to-list 'treesit-language-source-alist grammar)
+;;       ;; Only install `grammar' if we don't already have it
+;;       ;; installed. However, if you want to *update* a grammar then
+;;       ;; this obviously prevents that from happening.
+;;       (unless (treesit-language-available-p (car grammar))
+;;         (treesit-install-language-grammar (car grammar)))))
 
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
+;;   ;; Optional. Combobulate works in both xxxx-ts-modes and
+;;   ;; non-ts-modes.
 
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars))
+;;   ;; You can remap major modes with `major-mode-remap-alist'. Note
+;;   ;; that this does *not* extend to hooks! Make sure you migrate them
+;;   ;; also
+;;   (dolist (mapping
+;;            '((python-mode . python-ts-mode)
+;;              (css-mode . css-ts-mode)
+;;              (typescript-mode . typescript-ts-mode)
+;;              (js2-mode . js-ts-mode)
+;;              (bash-mode . bash-ts-mode)
+;;              (conf-toml-mode . toml-ts-mode)
+;;              (go-mode . go-ts-mode)
+;;              (css-mode . css-ts-mode)
+;;              (json-mode . json-ts-mode)
+;;              (js-json-mode . json-ts-mode)))
+;;     (add-to-list 'major-mode-remap-alist mapping))
+;;   :config
+;;   (mp-setup-install-grammars))
 
-(use-package combobulate
-  :straight (combobulate
-             :type git
-             :host github
-             :repo "mickeynp/combobulate")
-    :custom
-    ;; You can customize Combobulate's key prefix here.
-    ;; Note that you may have to restart Emacs for this to take effect!
-    (combobulate-key-prefix "C-c o")
-    :hook ((prog-mode . combobulate-mode)))
+;; (use-package combobulate
+;;   :straight (combobulate
+;;              :type git
+;;              :host github
+;;              :repo "mickeynp/combobulate")
+;;     :custom
+;;     ;; You can customize Combobulate's key prefix here.
+;;     ;; Note that you may have to restart Emacs for this to take effect!
+;;     (combobulate-key-prefix "C-c o")
+;;     :hook ((prog-mode . combobulate-mode)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1106,6 +1167,16 @@
 (use-package csv-mode
   :straight t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Beacon
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package beacon
+  :straight t)
+
+(beacon-mode 1)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Tree Sitter and Combobulate
@@ -1317,7 +1388,10 @@
 ;; I can't seem to get the hang of turning this on for lisps all the time but I
 ;; intend to use bits of the package (like lispy-avy)
 (use-package lispy
-  :straight t)
+  :straight
+  (lispy :type git
+         :host github
+         :repo "enzuru/lispy"))
 
 ;; (eval-after-load "lispy"
 ;;   '(progn
@@ -1442,6 +1516,7 @@
 ;; set babashka files to open in clojure mode
 (add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
 
+(setq nrepl-sync-request-timeout 120)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; cider-storm test
@@ -1576,7 +1651,14 @@
   (setq elpy-rpc-python-command "python3")
   (setq elpy-rpc-virtualenv-path 'current))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Haskell
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package haskell-mode
+  :straight t)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Rust
@@ -1586,6 +1668,21 @@
 (use-package rustic
   :straight t
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Claude Code IDE
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; add these once I'm using MCP
+;; :config
+;;  (claude-code-ide-emacs-tools-setup)
+(use-package claude-code-ide
+  :straight (:type git :host github :repo "manzaltu/claude-code-ide.el")
+  :bind ("C-c '" . claude-code-ide-menu)
+  :custom
+  (claude-code-ide-terminal-backend 'eat))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1673,6 +1770,44 @@ _~_: modified
 
 (define-key Buffer-menu-mode-map "." 'hydra-buffer-menu/body)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; annotate.el
+;;
+;; Looking for a way to keep notes on a source file without littering it with comments.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (use-package annotate
+;;   :straight t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; noccur.el - occur across a project
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; requires a directory when I want to recurse down the project, might be a good base but
+;; doesn't suit my needs atm
+(use-package noccur
+  :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; wgrep - for editing grep buffers
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package wgrep
+  :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; End of packages marker
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1703,6 +1838,7 @@ _~_: modified
 (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
 
 ;; (concat *install-dir* "custom.el")
+;; why did I have this??
 (when (file-exists-p "~/.tradeswell/.onepassword.el")
   (load "~/.tradeswell/.onepassword.el" nil :nomessage))
 
@@ -1792,6 +1928,77 @@ _~_: modified
     (goto-char (+ end (length input-str)))
     (insert input-str)))
 
+(defun stringify ()
+  "Prompt for a string and insert it at the beginning and end of the current region."
+  (interactive)
+  (let* ((input-str "\"")
+         (start (region-beginning))
+         (end (region-end)))
+    ;; Insert the string at the beginning of the region
+    (goto-char start)
+    (insert input-str)
+
+    ;; Move to the end of the region and insert the string again
+    (goto-char (+ end (length input-str)))
+    (insert input-str)))
+
+(defun open-sff-at-point ()
+  (interactive)
+  (with-syntax-table (make-syntax-table)
+    (modify-syntax-entry ?\: "w")
+    (modify-syntax-entry ?\- "w")
+    (modify-syntax-entry ?\_ "w")
+    (let ((arn (thing-at-point 'word)))
+      (browse-url (format "https://us-east-1.console.aws.amazon.com/states/home?region=us-east-1#/v2/executions/details/%s" arn)))))
+
+;; for now we'll just copy it so we can open it
+;; later we'll modify s3ed so that it can be automatically opened
+(defun get-greeks-path-at-point ()
+  (interactive)
+  (with-syntax-table (make-syntax-table)
+    (modify-syntax-entry ?\_ "w")
+    (modify-syntax-entry ?\= "w")
+    (modify-syntax-entry ?\/ "w")
+    (modify-syntax-entry ?\: "w")
+    (modify-syntax-entry ?\- "w")
+    (modify-syntax-entry ?\. "w")
+    (let ((path (thing-at-point 'word)))
+      (kill-new path))))
+
+(defun tw-github-for-project ()
+  (interactive)
+  (let* ((dir (project-root (project-current)))
+         (project (car (cdr (reverse (split-string dir "/"))))))
+    (browse-url (format "https://github.com/tradeswell/%s" project))))
+
+(defun extract-flyway-migration-versions (s)
+  (interactive)
+  (let ((parts (split-string s "_")))
+    (cons (car parts)
+          (car (cdr parts)))))
+
+(defun new-flyway-migration ()
+  (interactive)
+  (let* ((dir (read-directory-name "Migration dir: "))
+         (files (directory-files dir nil "V.*\.sql"))
+         (versions (mapcar #'extract-flyway-migration-versions files))
+         (major (car (reverse (sort (mapcar #'car versions)))))
+         (minor-versions (seq-filter (lambda (x)
+                                               (equal major (car x)))
+                                             versions))
+         (minor (number-to-string
+                 (1+
+                  (apply 'max
+                         (mapcar (lambda (x)
+                                   (string-to-number (cdr x)))
+                                 minor-versions)))))
+         (new-file (read-string "New Migration: " (format "%s%s_%s__" dir major minor)))
+         )
+    (find-file new-file)))
+
+;; (read-string "New Migration: " (format "%s%s_%s__" dir major minor))
+
+
 ;; requires jet to be on the path
 ;; rewrite this usihng raw elisp instead
 ;; select a region
@@ -1800,6 +2007,52 @@ _~_: modified
 (defalias 'json-region-to-edn
    (kmacro "C-u M-| j e t SPC - - f r o m SPC j s o n SPC - - t o SPC c l <backspace> <backspace> e d n SPC - - k e y w o r d i z e <return> C-M-SPC M-% , <return> <return> ! C-c SPC"))
 
+
+
+;; Workspace manipulation via tab bar mode
+(defun get-open-tabs ()
+  (mapcar 'cdr (mapcar (lambda (tab)
+                         (assoc 'name (cdr tab))) (funcall tab-bar-tabs-function))))
+(defun tab-open? (name)
+  (cl-find name (get-open-tabs) :test 'equal))
+
+(defun new-tab-with-name (name)
+  (tab-bar-new-tab)
+  (tab-bar-rename-tab name))
+
+;; switching to an init workspace
+(defun create-init-tab ()
+  (interactive)
+  (tab-bar-new-tab)
+  (tab-bar-rename-tab "init.el")
+  (find-file (concat *install-dir* "init.el"))
+  (select-window (split-window-below))
+  (ielm)
+  (other-window 1))
+
+(defun my-init-switcher ()
+  (interactive)
+  (if (tab-open? "init.el")
+      (tab-switch "init.el")
+    (create-init-tab)))
+
+;; handling the compilation buffer
+;; (defun jump-to-compilation-tab ()
+;;   (interactive)
+;;   (display-buffer-in-tab (get-buffer "*compilation*") (list (cons 'tab-name "compilation")))
+;;   (end-of-buffer))
+
+;;(advice-add 'project-compile :after #'jump-to-compilation-tab)
+;;(advice-remove 'project-compile #'myproject-compile-advice)
+
+;; I might not need the compilation buffer code...
+
+(add-to-list 'display-buffer-alist
+             '("\\*compilation*\\*"
+               (display-buffer-in-tab)
+               (tab-name . "compilation")))
+
+;; Can I dynamically control display buffer alist? like if
 ;; solo rpgs in emacs
 ;; (use-package rpgdm-ironsworn
 ;;   :straight (:local-repo "~/development/howardabrams/emacs-rpgdm")

@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: tw daily
+# key: twdaily
+# --
+#+begin_src clojure
+    (invoke-lambda
+     "data-service-manager-$1-dailyRunner"
+     {:command "run"
+     :data-source "$2"
+     :dry-run true})
+#+end_src

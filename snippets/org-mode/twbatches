@@ -1,0 +1,37 @@
+# -*- mode: snippet -*-
+# name: twbatches
+# key: twbatches
+# --
+#+begin_src sql :db-conn dsm-$1
+  with batches as
+  (
+  select id, data_source, batch_id, task_source, status
+  from data_service_manager.batch_requests
+  where created_at >= CURRENT_DATE - 1),
+  batch_statistics as
+  (
+  select *
+  from crosstab($$
+                select
+                batch_id, task_status, count(*)
+                from data_service_manager.tasks t
+                where created_at >= CURRENT_DATE - 1
+                group by 1, 2
+                $$,
+  	      $$
+                 select task_status
+                  from data_service_manager.tasks
+                  group by task_status
+                  order by task_status
+                 $$)
+   as (batch_id UUID,
+       pending bigint,
+       in_progress bigint,
+       retry bigint,
+       fatal bigint,
+       complete bigint
+     ))
+  select b.batch_id, b.data_source, b.task_source, b.status, complete, fatal, pending, in_progress, retry
+  from batches b, batch_statistics bs
+  where b.batch_id = bs.batch_id;$0
+#+end_src

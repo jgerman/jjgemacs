@@ -1,0 +1,24 @@
+# -*- mode: snippet -*-
+# name: lambdahandler
+# key: lambdahandler
+# --
+(ns tradeswell.handlers.$1
+  (:require
+   [tradeswell.components.aws.lambda :as lambda]
+   [tradeswell.config :as config]
+   [tradeswell.data-service-criteo.handlers.utils :as handler-utils]
+   [tradeswell.components.aws.s3 :as s3]
+   [clojure.java.io :as io])
+  (:gen-class
+   :name tradeswell.handlers.$2
+   :implements [com.amazonaws.services.lambda.runtime.RequestStreamHandler]))
+
+(defn stub [system input]
+  true)
+
+(defn -handleRequest
+  [_ input-stream output-stream lambda-context]
+  (handler-utils/handler-helper input-stream
+                                output-stream
+                                lambda-context
+                                stub))

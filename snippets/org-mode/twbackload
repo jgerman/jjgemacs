@@ -1,0 +1,13 @@
+# key: twbackload
+# name: twbackload
+# --
+#+begin_src clojure
+  (invoke-lambda
+   "data-service-manager-${1:dev}-dataServiceBackloadEventListener"
+   {:data_source "${2:WALMART_CONNECT}"
+    :data_source_company_id "${3:236312}"
+    :historical_sync false
+    :force ${4:true}
+    :dry-run true$5}
+)
+#+end_src

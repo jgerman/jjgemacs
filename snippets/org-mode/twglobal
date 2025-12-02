@@ -1,0 +1,12 @@
+# key: twglobal
+# name: twglobal
+# --
+#+begin_src clojure
+  (invoke-lambda
+   "data-service-manager-${1:dev}-dailyRunner"
+   {:command "run-global"
+    :data-source "${2:WALMART_CONNECT}"
+    :reports [${3:"search-trends"}]
+    :dry-run ${4:true}}
+  )
+#+end_src

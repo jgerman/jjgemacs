@@ -1056,8 +1056,7 @@
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   :config
   ;; taken from the cape configurations
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent))
 
 
 ;; A few more useful configurations...
@@ -1223,14 +1222,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; not working yet
-(use-package aws-mode
-  :straight (aws-mode
-             :type git
-             :host github
-             :repo "snowiow/aws.el")
-  :custom
-  (aws-vault nil)
-  (aws-output "json"))
+;; (use-package aws-mode
+;;   :straight (aws-mode
+;;              :type git
+;;              :host github
+;;              :repo "snowiow/aws.el")
+;;   :custom
+;;   (aws-vault nil)
+;;   (aws-output "json"))
 
 (use-package s3ed
   :straight t)
@@ -1517,6 +1516,18 @@
 (add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
 
 (setq nrepl-sync-request-timeout 120)
+
+;; new clojure project
+;; I should probably switch to the deps.edn?
+(defun new-clojure-project ()
+  (interactive)
+  (let* ((org (completing-read "Org: " '("jgerman" "tradeswell")))
+         (project-name (read-string "Project Name: "))
+         (default-directory *development-dir*)
+         (command (format "clj -Tnew app :name %s/%s :target-dir %s/%s" org project-name org project-name)))
+    (shell-command-to-string command)
+    (find-file (format "%s%s/%s/deps.edn" *development-dir* org project-name))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; cider-storm test
@@ -1548,12 +1559,12 @@
   (geiser-active-implementations '(racket guile mit))
   (geiser-set-default-implementation 'mit))
 
-;;(use-package racket-mode
-;;  :straight t)
+(use-package racket-mode
+  :straight t)
 
-;;(add-hook 'racket-mode-hook #'smartparens-mode)
-;;(add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
-;;(add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
+(add-hook 'racket-mode-hook #'smartparens-mode)
+(add-hook 'racket-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'racket-mode-hook #' turn-on-smartparens-strict-mode)
 
 (add-hook 'geiser-mode-hook #'smartparens-mode)
 (add-hook 'geiser-mode-hook #'rainbow-delimiters-mode)
@@ -1644,12 +1655,21 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package elpy
-  :straight t
-  :init
-  (elpy-enable)
-  (setq elpy-rpc-python-command "python3")
-  (setq elpy-rpc-virtualenv-path 'current))
+;; (use-package elpy
+;;   :straight t
+;;   :init
+;;   (elpy-enable)
+;;   (setq elpy-rpc-python-command "python3")
+;;   (setq elpy-rpc-virtualenv-path 'current))
+
+;; set up handling of the virtual env
+
+;; appears to require projectile?
+;; (use-package auto-virtualenv
+;;   :straight t
+;;   :config
+;;   (set auto-virtualenv-verbose t)
+;;   (auto-virtualenv-setup))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1659,6 +1679,7 @@
 
 (use-package haskell-mode
   :straight t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Rust
@@ -1668,6 +1689,16 @@
 (use-package rustic
   :straight t
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Odin
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package odin-mode
+  :straight (:type git :host github :repo "mattt-b/odin-mode"))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1804,6 +1835,25 @@ _~_: modified
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; Emacs Anywhere
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package emacs-anywhere
+  :load-path "~/development/nohzafk/emacs-anywhere"
+  :config
+  (server-start))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Crux
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package crux
+  :straight t)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; End of packages marker
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1817,6 +1867,7 @@ _~_: modified
 
 (defun tw-project-p ()
   (string-match-p (regexp-quote "development/tradeswell") default-directory))
+
 
 (defun tw-branch-git-subj ()
   (let ((prj (car (split-string (magit-get-current-branch) "\/"))))
@@ -1842,9 +1893,28 @@ _~_: modified
 (when (file-exists-p "~/.tradeswell/.onepassword.el")
   (load "~/.tradeswell/.onepassword.el" nil :nomessage))
 
- (when (file-exists-p (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
-   (load (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
-   (tw/create-db-connections))
+
+ ;; (when (file-exists-p (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+ ;;   (load (concat *development-dir* "tradeswell/tradeswell-emacs/tradeswell-dbs.el"))
+ ;;   (tw/create-db-connections))
+
+;;(use-package tradeswell-emacs
+;;:straight (tradeswell-emacs :type git :host github :repo "tradeswell/tradeswell-emacs"))
+
+;; (straight-use-package
+;;   :straight t
+;;   :package "tradeswell-emacs"
+;;   :host nil
+;;   :type git
+;;   :repo "git@github.com:Tradeswell/tradeswell-emacs.git")
+(use-package tradeswell-emacs
+  :straight (:local-repo "~/development/tradeswell/tradeswell-emacs")
+  :custom
+  (tw/greeks-dir "/Users/jgerman/development/tradeswell/data-greeks")
+  (tradeswell-snippets-dir "/Users/jgerman/development/tradeswell/tradeswell-emacs/snippets/")
+  :config
+  (tw/create-db-connections)
+  (org-babel-lob-ingest "~/development/tradeswell/tradeswell-emacs/tradeswell-babel.org"))
 
 ;; since I'm not using helm find file adding this advice
 ;; TODO change this so it asks first
@@ -1879,10 +1949,6 @@ _~_: modified
       (erase-buffer)
       (insert headers))
     (switch-to-buffer buff)))
-
-(defun json-to-clojure ()
-  (interactive)
-  )
 
 ;; get now
 (defun now ()

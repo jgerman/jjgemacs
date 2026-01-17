@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: Drive From env
-# key: call-drive-from-env
+# name: Drive From Environment
+# key: tw/drive-from-env
 # --
-#+CALL: drive-from-env(source="$1",dest="${2:local}", hash="$3")$0
+#+CALL: drive-from-env(source=t"$1",dest="${2:local}", hash="$3")$0

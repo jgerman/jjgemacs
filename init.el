@@ -17,6 +17,7 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+(setq straight-vc-git-default-protocol 'ssh)
 
 (use-package org
   :straight t
@@ -135,7 +136,9 @@
 (setq ring-bell-function 'ignore)
 (winner-mode t)
 (blink-cursor-mode -1)
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+;;(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode)
 (setq fci-rule-column 100)
 (set-window-scroll-bars (minibuffer-window) nil nil)
 (setq native-comp-async-report-warnings-errors nil)
@@ -379,6 +382,18 @@
 
 (use-package git-timemachine
   :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Git Delta
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package magit-delta
+  :straight t
+  :config
+  (setq magit-delta-delta-args '("--syntax-theme" "Coldark-Dark")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Generic modes that I want across emacs
@@ -664,11 +679,35 @@
 (use-package ob-go
   :straight t)
 
+;; come back to this after work
+
+;; debug on
+;; (setq use-package-verbose t
+;;       use-package-expand-minimally nil
+;;       use-package-compute-statistics t
+;;       debug-on-error t)
+
+;; debug off
+;; (setq use-package-verbose nil
+;;       use-package-expand-minimally t)
+
+(use-package ob-racket
+  :straight (ob-racket
+	       :type git :host github :repo "hasu/emacs-ob-racket")
+  :after org
+  :config
+  (add-hook 'ob-racket-pre-runtime-library-load-hook
+	      #'ob-racket-raco-make-runtime-library))
+
+
+(require 'ob-racket)
+
 (require 'ob-go)
 (require 'ob-clojure)
 (require 'ob-js)
 (require 'ob-kotlin)
 (require 'ob-typescript)
+
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -1022,15 +1061,30 @@
                  nil
                  (window-parameters (mode-line-format . none)))))
 
+;; is not working getting void on the fn
+;; (defun my/embark-ace-action (fn)
+;;   "Run command FN and then switch to the window selected by ace-window."
+;;   (lambda ()
+;;     (interactive)
+;;     (require 'ace-window)
+;;     (aw-switch-to-window (aw-select nil))
+;;     (call-interactively fn)))
+
+
+;; (with-eval-after-load 'embark
+;;   (define-key embark-file-map (kbd "o") (my/embark-ace-action #'find-file))
+;;   (define-key embark-buffer-map (kbd "o") (my/embark-ace-action #'switch-to-buffer))
+;;   (define-key embark-bookmark-map (kbd "o") (my/embark-ace-action #'bookmark-jump)))
+
 ;; Provide cap with a popup
 (use-package corfu
   :straight t
   ;; Optional customizations
   :custom
   ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-   (corfu-auto t)                 ;; Enable auto completion
+   (corfu-auto nil)                 ;; Enable auto completion
   ;; (corfu-separator ?\s)          ;; Orderless field separator
-  (corfu-quit-at-boundary 'separator)   ;; Never quit at completion boundary
+   (corfu-quit-at-boundary t)
   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
 ;;  (corfu-preview-current nil)    ;; Disable current candidate preview
   (corfu-preselect 'prompt)    ;; Disable candidate preselectino
@@ -1189,12 +1243,15 @@
 ;;
 ;; EJC SQL
 ;;
-;; Use jdbc to connect to dbs from emacs
+;; Use jdbc to connect to dbs from emacs, use my version for the proxy feature.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package ejc-sql
-  :straight t
+  :straight (ejc-sql
+             :type git
+             :host github
+             :repo "jgerman/ejc-sql")
 
   :commands
   (ejc-create-connection
@@ -1852,6 +1909,50 @@ _~_: modified
 
 (use-package crux
   :straight t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; dwim-shell-command
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; to add maybe? could be useful when I jump to emacs for microcontrollers?
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Jira Mode?
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (when (file-exists-p "~/.tradeswell/jira")
+;;   (load "~/.tradeswell/jira" nil :nomessage))
+
+;; (use-package jira
+;;   :straight t
+;;   :config
+;;   (setq jira-base-url "https://tradeswell.atlassian.net/")
+;;   (setq jira-username "jgerman@incremental.com") ;; Jira username (usually, an email)
+;;   ;; API token for Jira
+;;   ;; See https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+;;   (setq jira-token tw-jira-token)
+;;   (setq jira-token-is-personal-access-token nil)
+;;   (setq jira-api-version 3) ;; Version 2 is also allowed
+;;   ;; (Optional) API token for JIRA TEMPO plugin
+;;   ;; See https://apidocs.tempo.io/
+;;   )
+
+(load (locate-user-emacs-file "jira.el") nil :nomessage)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Winpulse
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package winpulse
+  :straight (:type git :host github :repo "xenodium/winpulse")
+  :config
+  (winpulse-mode +1))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; End of packages marker
@@ -1909,6 +2010,10 @@ _~_: modified
 ;;   :repo "git@github.com:Tradeswell/tradeswell-emacs.git")
 (use-package tradeswell-emacs
   :straight (:local-repo "~/development/tradeswell/tradeswell-emacs")
+  :init
+  (cider-jack-in '(:project-dir "~/development/tradeswell/tradeswell-emacs/"))
+  ;; I'm nnot in love with this but it can be cleaned up a different time.
+  (cider-jack-in '(:project-dir "~/development/jgerman/jjgemacs/straight/repos/ejc-sql/"))
   :custom
   (tw/greeks-dir "/Users/jgerman/development/tradeswell/data-greeks")
   (tradeswell-snippets-dir "/Users/jgerman/development/tradeswell/tradeswell-emacs/snippets/")
@@ -2118,6 +2223,20 @@ _~_: modified
                (display-buffer-in-tab)
                (tab-name . "compilation")))
 
+;; fast todos
+
+(defun org-set-line-checkbox (arg)
+  (interactive "P")
+  (let ((n (or arg 1)))
+    (when (region-active-p)
+      (setq n (count-lines (region-beginning)
+                           (region-end)))
+      (goto-char (region-beginning)))
+    (dotimes (i n)
+      (beginning-of-line)
+      (insert "- [ ] ")
+      (forward-line))
+    (beginning-of-line)))
 ;; Can I dynamically control display buffer alist? like if
 ;; solo rpgs in emacs
 ;; (use-package rpgdm-ironsworn

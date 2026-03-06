@@ -1091,7 +1091,8 @@
                       win))))
             (xref-find-definitions symbol))))))))
 
-(define-key embark-identifier-map (kbd "D") #'my/embark-goto-definition-other-window)
+(with-eval-after-load 'embark
+(define-key embark-identifiero-map (kbd "D") #'my/embark-goto-definition-other-window))
 
 ;; is not working getting void on the fn
 ;; (defun my/embark-ace-action (fn)

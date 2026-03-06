@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: psqlshowtables
+# key: psqlshowtables
+# --
+#+begin_src sql :db-conn ${1:local-db}
+  SELECT table_name
+  FROM information_schema.tables
+  WHERE table_schema = 'public' AND table_type = 'BASE TABLE'; $0
+#+end_src

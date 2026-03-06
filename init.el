@@ -319,6 +319,9 @@
   :init
   (all-the-icons-completion-mode))
 
+;; I don't need all the choices
+(setq project-switch-commands 'project-find-file)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Use dashboard as a landing for new frames
@@ -726,6 +729,14 @@
 
 (setq org-babel-clojure-backend 'cider)
 
+(defun org-babel-remove-results-in-region (start end)
+  "Remove results for all source blocks within the active region."
+  (interactive "r")
+  (save-excursion
+    (goto-char end)
+    (while (re-search-backward "^[ \t]*#\\+BEGIN_SRC" start t)
+      (org-babel-remove-result-one-or-many nil))))
+
 (use-package org-roam
   :straight t
   :init
@@ -1060,6 +1071,27 @@
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
+
+(defun my/embark-goto-definition-other-window (symbol)
+  "Jump to definition of SYMBOL, opening in another window based on window count."
+  (let ((win-count (length (window-list))))
+    (cond
+     ((= win-count 1)
+      (select-window (split-window-right))
+      (xref-find-definitions symbol))
+     ((= win-count 2)
+      (let ((display-buffer-overriding-action '(display-buffer-use-some-window (inhibit-same-window . t))))
+        (xref-find-definitions symbol)))
+     (t
+      (let ((win (aw-select "Select window for definition")))
+        (when (windowp win)
+          (let ((display-buffer-overriding-action
+                 `(,(lambda (buffer _alist)
+                      (set-window-buffer win buffer)
+                      win))))
+            (xref-find-definitions symbol))))))))
+
+(define-key embark-identifier-map (kbd "D") #'my/embark-goto-definition-other-window)
 
 ;; is not working getting void on the fn
 ;; (defun my/embark-ace-action (fn)
@@ -1988,6 +2020,14 @@ _~_: modified
 (load (locate-user-emacs-file "github.el") nil :nomessage)
 
 (load (locate-user-emacs-file "my-projects.el") nil :nomessage)
+
+(load (locate-user-emacs-file "mode-visual-bell.el") nil :nomessage)
+(mode-visual-bell-register 'lispy-mode
+  :label "LISPY"
+  :bg "#1a0a2e"
+  :fg "#b48ead"
+  :cursor-color "#b48ead"
+  :cursor-type 'box)
 
 ;; (concat *install-dir* "custom.el")
 ;; why did I have this??

@@ -1,7 +1,10 @@
 ;; early init handles disabling the built in package management
-;;
 
-;; bootstrap straight
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Set up straight
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -17,117 +20,48 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+
 (setq straight-vc-git-default-protocol 'ssh)
 
-(use-package org
-  :straight t
-  :custom
-  (org-startup-indented t))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; MAc
+;; General settings
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq mac-option-modifier 'super)
-(setq mac-command-modifier 'meta)
-(setq select-enable-clipboard t)
-(setq mac-pass-command-to-system nil)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Some constants that are highly subjective to my setup
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; I keep all my checked out projects under a development directory, including my config
-;; and third party repos I clone
+;; load sensible defaults
 (defconst *development-dir* "~/development/")
 (defconst *install-dir* "~/development/jgerman/jjgemacs/") ;; TODO change me when I merge this to main
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; I'm going to call these core settings for now, stuff I want in my emacs
-;; config no matter what (for the most part)
-;;
-;; Things that should go in this section are:
-;;   - fonts and font sizes
-;;   - emacs core settings (gc threshold, turning on and off ui elements)
-;;   - core window management (ace-window, pop-win)
-;;   - basically anything that I don't intend to change or remove
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; I still use sensible defaults to bootstrap my emacs configs
 (load-file (concat *development-dir* "hrs/sensible-defaults.el/sensible-defaults.el"))
 (sensible-defaults/use-all-settings)
 (sensible-defaults/use-all-keybindings)
 (sensible-defaults/backup-to-temp-directory)
 
+(setq custom-file (concat *install-dir* "custom.el"))
+(load custom-file)
 
-;; Fonts and sizes
+;; this is a candidate for extracting to a separate file
+;; in case I want to switch between project.el and projectile
+(setq project-switch-commands 'project-find-file)
 
-(defvar *my-font-size* 120)
-(when (= (display-pixel-width) 1920)
-  (setq *my-font-size* 110))
-(when (= (display-pixel-width) 3456)
-  (setq *my-font-size* 100))
-(when (= (display-pixel-width) 3840)
-  (setq *my-font-size* 120)) ;; changing this for the mac probably screws up linux.. why??
-(when (= (display-pixel-width) 2560)
-  (setq *my-font-size* 110))
-(when (= (display-pixel-width) 1600)
-  (setq *my-font-size* 120))
-(message (concat "Setting font to: " (number-to-string *my-font-size*)))
-(defvar *my-font* "")
-(setq *my-font* "Hack")
-(set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
-(set-frame-font *my-font* nil t)
+;; mac specific
+(setq mac-option-modifier 'super)
+(setq mac-command-modifier 'meta)
+(setq select-enable-clipboard t)
+(setq mac-pass-command-to-system nil)
 
-;; (custom-theme-set-faces
-;;  'user
-;;  '(variable-pitch ((t (:family "Hack" :height 180 :weight thin))))
-;;  '(fixed-pitch ((t (:family "Hack" :height 120)))))
 
-;;  (custom-theme-set-faces
-;;    'user
-;;    '(org-block ((t (:inherit fixed-pitch))))
-;;    '(org-code ((t (:inherit (shadow fixed-pitch)))))
-;;    '(org-document-info ((t (:foreground "dark orange"))))
-;;    '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
-;;    '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
-;;    '(org-link ((t (:foreground "royal blue" :underline t))))
-;;    '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-;;    '(org-property-value ((t (:inherit fixed-pitch))) t)
-;;    '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
-;;    '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
-;;    '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
-;;    '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
 
-;;   (add-hook 'org-mode-hook 'variable-pitch-mode)
 
-;; how do we treat tabs?
+
+
+;; Indentation should not use tabs
 (setq-default indent-tabs-mode nil)
 
-;; I set this based on the advice from lsp-mode's performance page
-;; currently using eglot but seems like a good thing to keep high
+;; Setting this to improve LSP performance
 (setq gc-cons-threshold 100000000)
 
-
-;; convenient way to get to the config
-(defun find-config ()
-  (interactive)
-
-  ;;(find-file (concat *install-dir* "init.el"))
-  (my-init-switcher))
-
-(global-set-key (kbd "C-c I") 'find-config)
-
-;; why did this get unbound? ok maybe it was the mac os upgrade had to turn off the touchbar screenshot in settings
-(global-set-key (kbd "M-^") 'join-line)
-
-;; Some basic changes
 (tool-bar-mode 0)
 (menu-bar-mode 0)
 (scroll-bar-mode -1)
@@ -142,10 +76,6 @@
 (setq fci-rule-column 100)
 (set-window-scroll-bars (minibuffer-window) nil nil)
 (setq native-comp-async-report-warnings-errors nil)
-
-(setq custom-file (concat *install-dir* "custom.el"))
-(load custom-file)
-
 (setq switch-to-buffer-obey-display-actions t)
 
 ;; TODO double check that this is doing what I think it's doing
@@ -154,40 +84,13 @@
 ;; https://wilkesley.org/~ian/xah/emacs/emacs_set_backup_into_a_directory.html
 (setq make-backup-files nil)
 (setq auto-save-default nil)
-;;(setq backup-directory-alist
-;;      `((".*" . , temporary-file-directory)))
-
-
 (setq auto-save-file-name-transforms
       `((".*", temporary-file-directory t)))
 
-;; I use this a lot but I think I'm overwriting completion at point here? This
-;; may need to change
-(global-set-key "\M-/" 'hippie-expand)
-
-;; Started using general to define keymaps based on a blog post
-;; If it's convenient I'll convert all custom mappings to use it
-(use-package general
-  :straight t)
-
-;; manage how pop up windows behave TODO why did this sudenly break, what even
-;; does it affect anymore? I don't think I'm using this at all anymore, when
-;; popwin-mode is enabled I get a bunch of dummy buffers
-(use-package popwin
-  :straight t
-  :config
-  ;;(popwin-mode 1)
-  ;;(setq display-buffer-alist '((popwin:display-buffer-condition popwin:display-buffer-action)))
-  )
-
-;; convenient window switching
-(use-package ace-window
-  :straight t)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-
-;; use ace-select-window when you want to auto jump when there are only 2
-;; windows, ace-window to always select (which might play nicer with embark)
-(global-set-key (kbd "C-x o") 'ace-window)
+;; attempting to solve eglot not starting based on reddit post I saw
+;; this fixes the problem that ai was seeing after installing emacs-plus@30
+(straight-use-package '(project :type built-in))
+(straight-use-package '(xref :type built-in))
 
 ;; window movement
 (global-set-key (kbd "C-M-S-s-j") 'windmove-down)
@@ -202,57 +105,42 @@
 (global-set-key (kbd "C-M-S-s-l") 'windmove-right)
 (global-set-key (kbd "C-M-S-s-<right>") 'windmove-right)
 
-;; ensure shell
-(use-package exec-path-from-shell
-  :straight t
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
-
-;; control how eldoc behaves
-(setq eldoc-documentation-function
-      (lambda ()
-        (when (eql last-command-event 32)
-          (let (eldoc-documentation-function)
-            (eldoc-print-current-symbol-info)))))
-
-;; attempting to solve eglot not starting based on reddit post I saw
-;; this fixes the problem that ai was seeing after installing emacs-plus@30
-(straight-use-package '(project :type built-in))
-(straight-use-package '(xref :type built-in))
-
-;; taken from here: https://wwvw.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
-(defun eshell-new ()
-  "Open a new instance of eshell."
-  (interactive)
-  (eshell 'N))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; Theming
+;; Keybinds that don't fit elsewhere (or need to placed more appropriately)
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; doom vibrant was looking too washed out
-;; doom-ayu-dark isn't bad but I can't see the comments
-;; doom-ir-black is a strong contender still good
-;; doom-laserwave is ok
-;; material dark is decent
-;; meltbus is monocrhomatic but I kind of like it
-;; molokai isn't bad, but don't like the full line, comments still too dark, like the variable font sizes for headings
-;; doom monokai octagon ok
-;; monokai pro
-;; monokai spectrum
-;; moonlight
-;; nord might be too contrasty but I kinda like the highlighted current line
-;; nova contrasty but not bad
-;; oceanic-next
-;; one
-;; outrun-electric is good except the line numbers are invisible except the current
-;; wilmersdorf not bad but same issue with background too light gray
+;; at some point this stopped working by default and needed to be set manually
+(global-set-key (kbd "M-^") 'join-line)
 
-;; doom-vibrant was my last most common
-;; doom-ir-black but with variable font sizes? and brighter comments
+;; I never really use this
+(global-set-key "\M-/" 'hippie-expand)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Theme/Appearance
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *my-font-size* 120)
+(when (= (display-pixel-width) 1920)
+  (setq *my-font-size* 110))
+(when (= (display-pixel-width) 3456)
+  (setq *my-font-size* 100))
+(when (= (display-pixel-width) 3840)
+  (setq *my-font-size* 120)) ;; changing this for the mac probably screws up linux.. why??
+(when (= (display-pixel-width) 2560)
+  (setq *my-font-size* 110))
+(when (= (display-pixel-width) 1600)
+  (setq *my-font-size* 120))
+
+(message (concat "Setting font to: " (number-to-string *my-font-size*)))
+(defvar *my-font* "")
+(setq *my-font* "Hack")
+(set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
+(set-frame-font *my-font* nil t)
 
 (use-package doom-themes
   :straight t
@@ -267,19 +155,6 @@
     ;;(load-theme 'doom-vibrant)
       (load-theme 'doom-ir-black)))
 
-;; wash out the background a bit
-;; (custom-set-faces
-;;  '(default ((t (:background "#1c1b1b")))))
-
-;; (use-package solarized-theme
-;;   :straight t
-;;   :config
-;;   (setq solarized-distinct-fringe-background nil)
-;;   (setq x-underline-at-descent-line nil)
-;;   (setq solarized-high-contrast-mode-line nil)
-;;   (load-theme 'solarized-dark t))
-
-
 ;; Highlight the current paren in bold red
 (require 'paren)
 (set-face-foreground 'show-paren-match "#f54949")
@@ -293,8 +168,6 @@
   (setq doom-modeline-hud t)
   (setq doom-modeline-buffer-file-name-style 'relative-from-project)
   (setq doom-modeline-vcs-max-length 25))
-
-
 
 (use-package hl-line
   :straight t
@@ -319,8 +192,42 @@
   :init
   (all-the-icons-completion-mode))
 
-;; I don't need all the choices
-(setq project-switch-commands 'project-find-file)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Global Packages
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package org
+  :straight t
+  :custom
+  (org-startup-indented t))
+
+(use-package ace-window
+  :straight t
+  :bind ("C-x o" . 'ace-window)
+  :config (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+;; Started using general to define keymaps based on a blog post
+;; If it's convenient I'll convert all custom mappings to use it
+;; TODO do I anymore? I believe this is only being used with the vertico setup
+(use-package general
+  :straight t)
+
+;; ensure shell
+(use-package exec-path-from-shell
+  :straight t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
+;; control how eldoc behaves
+(setq eldoc-documentation-function
+      (lambda ()
+        (when (eql last-command-event 32)
+          (let (eldoc-documentation-function)
+            (eldoc-print-current-symbol-info)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -369,6 +276,8 @@
 ;;
 ;; Forge
 ;;
+;; I still don't use this maybe it needs to be removed.
+;;
 ;; Setup:
 ;; git config --global github.user USERNAME
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -389,6 +298,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Git Delta
+;;
+;; experimental
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -470,8 +381,6 @@
 
 (add-to-list 'auto-mode-alist '("\\.restclient\\'" . restclient-mode))
 
-;; I need to start checking my snippets in, and learning to better manage
-;; yasnippet in general
 (use-package yasnippet
   :straight t
   :config
@@ -487,138 +396,8 @@
 (use-package multiple-cursors
   :straight t)
 
-(use-package graphql-mode
-  :straight t)
-
 (use-package request
   :straight t)
-;; if I get rid of kmonad I have to get rid of this too it's already iffy due to
-;; the way I type, I've had actions occurring on screen I don't want
-;; ultimately home row mods would be nice though...
-;; (use-package kbd-mode
-;;   :straight (keyboard-mode :type git :host github :repo "kmonad/kbd-mode"))
-
-;; (add-to-list 'auto-mode-alist '("\\.kbd\\'" . restclient-mode))
-
-;; (use-package meow
-;;   :straight t)
-
-;; (defun meow-setup ()
-;;   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-;;   (meow-motion-overwrite-define-key
-;;    '("j" . meow-next)
-;;    '("k" . meow-prev)
-;;    '("<escape>" . ignore))
-;;   (meow-leader-define-key
-;;    ;; SPC j/k will run the original command in MOTION state.
-;;    '("j" . "H-j")
-;;    '("k" . "H-k")
-;;    ;; Use SPC (0-9) for digit arguments.
-;;    '("1" . meow-digit-argument)
-;;    '("2" . meow-digit-argument)
-;;    '("3" . meow-digit-argument)
-;;    '("4" . meow-digit-argument)
-;;    '("5" . meow-digit-argument)
-;;    '("6" . meow-digit-argument)
-;;    '("7" . meow-digit-argument)
-;;    '("8" . meow-digit-argument)
-;;    '("9" . meow-digit-argument)
-;;    '("0" . meow-digit-argument)
-;;    '("/" . meow-keypad-describe-key)
-;;    '("?" . meow-cheatsheet))
-;;   (meow-normal-define-key
-;;    '("0" . meow-expand-0)
-;;    '("9" . meow-expand-9)
-;;    '("8" . meow-expand-8)
-;;    '("7" . meow-expand-7)
-;;    '("6" . meow-expand-6)
-;;    '("5" . meow-expand-5)
-;;    '("4" . meow-expand-4)
-;;    '("3" . meow-expand-3)
-;;    '("2" . meow-expand-2)
-;;    '("1" . meow-expand-1)
-;;    '("-" . negative-argument)
-;;    '(";" . meow-reverse)
-;;    '("," . meow-inner-of-thing)
-;;    '("." . meow-bounds-of-thing)
-;;    '("[" . meow-beginning-of-thing)
-;;    '("]" . meow-end-of-thing)
-;;    '("a" . meow-append)
-;;    '("A" . meow-open-below)
-;;    '("b" . meow-back-word)
-;;    '("B" . meow-back-symbol)
-;;    '("c" . meow-change)
-;;    '("d" . meow-delete)
-;;    '("D" . meow-backward-delete)
-;;    '("e" . meow-next-word)
-;;    '("E" . meow-next-symbol)
-;;    '("f" . meow-find)
-;;    '("g" . meow-cancel-selection)
-;;    '("G" . meow-grab)
-;;    '("h" . meow-left)
-;;    '("H" . meow-left-expand)
-;;    '("i" . meow-insert)
-;;    '("I" . meow-open-above)
-;;    '("j" . meow-next)
-;;    '("J" . meow-next-expand)
-;;    '("k" . meow-prev)
-;;    '("K" . meow-prev-expand)
-;;    '("l" . meow-right)
-;;    '("L" . meow-right-expand)
-;;    '("m" . meow-join)
-;;    '("n" . meow-search)
-;;    '("o" . meow-block)
-;;    '("O" . meow-to-block)
-;;    '("p" . meow-yank)
-;;    '("q" . meow-quit)
-;;    '("Q" . meow-goto-line)
-;;    '("r" . meow-replace)
-;;    '("R" . meow-swap-grab)
-;;    '("s" . meow-kill)
-;;    '("t" . meow-till)
-;;    '("u" . meow-undo)
-;;    '("U" . meow-undo-in-selection)
-;;    '("v" . meow-visit)
-;;    '("w" . meow-mark-word)
-;;    '("W" . meow-mark-symbol)
-;;    '("x" . meow-line)
-;;    '("X" . meow-goto-line)
-;;    '("y" . meow-save)
-;;    '("Y" . meow-sync-grab)
-;;    '("z" . meow-pop-selection)
-;;    '("'" . repeat)
-;;    '("<escape>" . ignore)))
-
-;;(require 'meow)
-;;(meow-setup)
-
-;;(meow-global-mode 1)
-
-;; leaving meow in the file for now but it - doesn't appear to play well with
-;; smart parens (using the fake cursors) - doesn't evaluate symbols correctly in
-;; clojure (keywords specifically and only in beacon mode which is odd) - I
-;; don't think I need it for movement, my current thinking is to bind C-c l as a
-;; leader for common lisp editing and movement commands: smartparens, consult
-;; imenu, avy line, lispy-ace-window
-;;
-;; However, when editing normal text I can see meow being useful for recording
-;; macros across lines maybe? So that small bit may be something I steal. If I
-;; can turn on meow to make a selection across lines then use beacon just do to
-;; the editing maybe?
-;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Dired ranger
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;(use-package dired-ranger
-;;  :straight t
-;;  :bind (:map dired-mode-map
-;;             ("W" . dired-ranger-copy)
-;;              ("X" . dired-ranger-move)
-;;              ("Y" . dired-ranger-paste)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -654,6 +433,7 @@
   :straight t
   :config
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Org Mode Setup
@@ -710,7 +490,6 @@
 (require 'ob-js)
 (require 'ob-kotlin)
 (require 'ob-typescript)
-
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -2248,6 +2027,12 @@ _~_: modified
       (tab-switch "init.el")
     (create-init-tab)))
 
+(defun find-config ()
+  (interactive)
+  (my-init-switcher))
+
+(global-set-key (kbd "C-c I") 'find-config)
+
 ;; handling the compilation buffer
 ;; (defun jump-to-compilation-tab ()
 ;;   (interactive)
@@ -2265,7 +2050,6 @@ _~_: modified
                (tab-name . "compilation")))
 
 ;; fast todos
-
 (defun org-set-line-checkbox (arg)
   (interactive "P")
   (let ((n (or arg 1)))
@@ -2278,22 +2062,12 @@ _~_: modified
       (insert "- [ ] ")
       (forward-line))
     (beginning-of-line)))
-;; Can I dynamically control display buffer alist? like if
-;; solo rpgs in emacs
-;; (use-package rpgdm-ironsworn
-;;   :straight (:local-repo "~/development/howardabrams/emacs-rpgdm")
-;;   :init
-;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-rpgdm")))
 
-;; (use-package emacs-ironsworn
-;;   :straight (:local-repo "~/development/howardabrams/emacs-ironsworn")
-;;   :init
-;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-ironsworn")))
+;; convenient way to get to the config
 
-;; (use-package emacs-ironsworn
-;;   :straight (:local-repo "~/development/howardabrams/emacs-ironsworn")
-;;   :init
-;;   (setq rpgdm-ironsworn-project (expand-file-name "~/development/howardabrams/emacs-ironsworn")))
 
-;; (use-package egme
-;;   :straight (egme :type git :host github :repo "CategoryQ/EmacsGME"))
+;; taken from here: https://wwvw.emacswiki.org/emacs/EshellMultipleEshellBuffers#:~:text=Multi%2Deshell,-multi%2Deshell.&text=It%20maintains%20a%20ring%20of,buffer%20in%20the%20shell%20ring.
+(defun eshell-new ()
+  "Open a new instance of eshell."
+  (interactive)
+  (eshell 'N))

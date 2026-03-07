@@ -1370,6 +1370,10 @@
   (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
 
+(load (locate-user-emacs-file "clojure-tap-inspector") nil :nomessage)
+(with-eval-after-load 'cider
+  (define-key cider-mode-map (kbd "C-c M-t") #'clj-tap-show))
+
 ;; is this even necessary anymore with eglot/lsp?
 (use-package clj-refactor
   :straight t)

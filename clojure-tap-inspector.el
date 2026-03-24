@@ -15,9 +15,7 @@
   (defonce taps (atom []))
   (defonce tap-fn
     (let [f (fn [v]
-              (swap! taps conj {:value v
-                                :timestamp (java.time.LocalDateTime/now)
-                                :type (type v)}))]
+              (swap! taps conj v))]
       (add-tap f)
       f)))"
   "Clojure code to initialize the tap inspector.")

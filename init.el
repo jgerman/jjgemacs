@@ -856,7 +856,7 @@
   (let ((win-count (length (window-list))))
     (cond
      ((= win-count 1)
-      (select-window (split-window-right))
+      (select-widow (split-window-right))
       (xref-find-definitions symbol))
      ((= win-count 2)
       (let ((display-buffer-overriding-action '(display-buffer-use-some-window (inhibit-same-window . t))))
@@ -871,7 +871,7 @@
             (xref-find-definitions symbol))))))))
 
 (with-eval-after-load 'embark
-(define-key embark-identifiero-map (kbd "D") #'my/embark-goto-definition-other-window))
+(define-key embark-identifier-map (kbd "D") #'my/embark-goto-definition-other-window))
 
 ;; is not working getting void on the fn
 ;; (defun my/embark-ace-action (fn)
@@ -1048,8 +1048,8 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package kubed
-  :straight t)
+;; (use-package kubed
+;;   :straight t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1758,6 +1758,8 @@ _~_: modified
 ;;   )
 
 (load (locate-user-emacs-file "jira.el") nil :nomessage)
+(load (locate-user-emacs-file "aws-secrets.el") nil :nomessage)
+(load (locate-user-emacs-file "date-picker.el") nil :nomessage)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -2001,8 +2003,6 @@ _~_: modified
 ;; then I typically C-c <space> to reformat
 (defalias 'json-region-to-edn
    (kmacro "C-u M-| j e t SPC - - f r o m SPC j s o n SPC - - t o SPC c l <backspace> <backspace> e d n SPC - - k e y w o r d i z e <return> C-M-SPC M-% , <return> <return> ! C-c SPC"))
-
-
 
 ;; Workspace manipulation via tab bar mode
 (defun get-open-tabs ()

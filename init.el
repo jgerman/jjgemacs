@@ -118,6 +118,8 @@
 (global-set-key "\M-/" 'hippie-expand)
 
 
+;; I need to refine this to be cleaner
+(global-set-key (kbd "C-c j r") 'olivetti-mode)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Theme/Appearance
@@ -142,6 +144,8 @@
 (set-face-attribute 'default nil :font *my-font* :height *my-font-size*)
 (set-frame-font *my-font* nil t)
 
+(straight-use-package '(nano-theme :type git :host github
+                                   :repo "rougier/nano-theme"))
 (use-package doom-themes
   :straight t
   :config
@@ -152,8 +156,11 @@
 	  doom-vibrant-brighter-comments nil
           doom-ir-black-brighter-comments t
           doom-ir-black-brighter-modeline t)
-    ;;(load-theme 'doom-vibrant)
-      (load-theme 'doom-ir-black)))
+    ;;(load-theme 'doom-ir-black)
+    ))
+
+;; attempting this for a cleaner look vs doom-ir-black
+(load-theme 'nano-dark t)
 
 ;; Highlight the current paren in bold red
 (require 'paren)
@@ -192,6 +199,7 @@
   :init
   (all-the-icons-completion-mode))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Global Packages
@@ -203,6 +211,8 @@
   :custom
   (org-startup-indented t))
 
+(straight-use-package '(book-mode :type git :host github
+                                   :repo "rougier/book-mode"))
 (use-package ace-window
   :straight t
   :bind ("C-x o" . 'ace-window)
@@ -308,6 +318,13 @@
   :config
   (setq magit-delta-delta-args '("--syntax-theme" "Coldark-Dark")))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Dired Settings
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq dired-dwim-target t)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Generic modes that I want across emacs
@@ -482,7 +499,6 @@
   (add-hook 'ob-racket-pre-runtime-library-load-hook
 	      #'ob-racket-raco-make-runtime-library))
 
-
 (require 'ob-racket)
 
 (require 'ob-go)
@@ -490,6 +506,11 @@
 (require 'ob-js)
 (require 'ob-kotlin)
 (require 'ob-typescript)
+
+;; for plantuml
+(setq org-plantuml-exec-mode 'plantuml)
+(setq org-image-actual-width nil)
+
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -504,7 +525,8 @@
                                  (typescript    .       t)
                                  (scheme        .       t)
                                  (js		.	t)
-                                 (dot . t))))
+                                 (dot . t)
+                                 (plantuml . t))))
 
 (setq org-babel-clojure-backend 'cider)
 
@@ -541,6 +563,10 @@
       '(("d" "default" entry "* %<%I:%M %p>: %?"
          :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
 
+(use-package org-roam-ql
+  :straight t
+  :after (org-roam))
+
 (use-package consult-org-roam
   :straight t)
 ;; '(("d" "default" plain
@@ -548,6 +574,18 @@
 ;;    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
 ;;    :unnarrowed t))
 
+;; find the id of a ticket matching the ticket id provided
+(defun my/find-ticket-note (ticket)
+  (interactive)
+  (org-roam-ql-nodes `(and (tags "ticket") (file-title ,(upcase ticket)))))
+
+;; TODO need a function to open a node by id, in a tab I think?
+;; jump from note to tab named for ticket
+;; create tab for ticket
+;; jump to repl for current ticket
+;; maybe two versions, one in a tab for that repl
+;; a second just just pop it open at the bottom
+;; do I need tabs or can we just save the window config somehow
 
 ;; exports
 (use-package ox-slack
@@ -870,8 +908,24 @@
                       win))))
             (xref-find-definitions symbol))))))))
 
+(defun my/embark-copy-full-path (file)
+  "Copy the full path of FILE to the kill ring."
+  (interactive "f")
+  (let ((path (expand-file-name file)))
+    (kill-new path)
+    (message "Copied: %s" path)))
+
+(defun my/embark-copy-filename (file)
+  "Copy just the filename (no directory) of FILE to the kill ring."
+  (interactive "f")
+  (let ((name (file-name-nondirectory file)))
+    (kill-new name)
+    (message "Copied: %s" name)))
+
 (with-eval-after-load 'embark
-(define-key embark-identifier-map (kbd "D") #'my/embark-goto-definition-other-window))
+  (define-key embark-identifier-map (kbd "D") #'my/embark-goto-definition-other-window)
+  (define-key embark-file-map (kbd "P") #'my/embark-copy-full-path)
+  (define-key embark-file-map (kbd "N") #'my/embark-copy-filename))
 
 ;; is not working getting void on the fn
 ;; (defun my/embark-ace-action (fn)
@@ -940,6 +994,213 @@
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Stealing from the best emacs configs
+;; https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-configs/
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Disable Bidirectional Text Scanning (Doom Emacs)
+
+;; If you don’t edit right-to-left languages (Arabic, Hebrew, etc.), Emacs is
+;; doing a bunch of work on every redisplay cycle for nothing. These settings
+;; tell Emacs to assume left-to-right text everywhere and skip the bidirectional
+;; parenthesis algorithm:
+
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
+
+;; Skip Fontification During Input (Doom Emacs)
+
+;; Emacs normally fontifies (syntax-highlights) text even while you’re actively
+;; typing. This can cause micro-stutters, especially in tree-sitter modes or
+;; large buffers. One setting fixes it:
+
+(setq redisplay-skip-fontification-on-input t)
+
+;; Increase Process Output Buffer for LSP (Doom, Purcell, Centaur)
+
+;; The default read-process-output-max is 64KB, which is still quite
+;; conservative. Modern LSP servers like rust-analyzer or clangd routinely send
+;; multi-megabyte responses. Bumping this reduces the number of read calls Emacs
+;; has to make:
+
+(setq read-process-output-max (* 4 1024 1024))
+
+;; Don’t Render Cursors in Non-Focused Windows (Doom Emacs)
+
+;; If you have several windows visible, Emacs draws a cursor in each of them –
+;; even the ones you’re not working in. It also highlights selections in
+;; non-focused windows. Two settings to stop that:
+
+(setq-default cursor-in-non-selected-windows nil)
+(setq highlight-nonselected-windows nil)
+
+;; Save the Clipboard Before Killing (Purcell, Prot, Centaur)
+
+;; Here’s a scenario: you copy a URL from your browser, switch to Emacs, kill a
+;; line with C-k, and then try to yank the URL you copied earlier with C-y.
+;; Gone. The kill replaced it on the clipboard.
+
+;; This setting makes Emacs save the existing clipboard content into the kill
+;; ring before overwriting it:
+
+(setq save-interprogram-paste-before-kill t)
+
+;; No Duplicates in the Kill Ring (Doom, Prot)
+;; Kill the same line three times and you get three identical entries in the kill ring, wasting slots. This deduplicates them:
+
+(setq kill-do-not-save-duplicates t)
+
+;; Persist the Kill Ring Across Sessions (Doom, Prot)
+
+;; Most configs that use savehist-mode only persist search rings. But savehist
+;; can save any variable – including the kill ring. Add it and you get clipboard
+;; history that survives restarts:
+
+;; (setq savehist-additional-variables
+;; '(search-ring regexp-search-ring kill-ring))
+
+;; One thing to watch out for: the kill ring can accumulate text properties
+;; (fonts, overlays, etc.) that bloat the savehist file. Doom strips them before
+;; saving:
+
+;; (add-hook 'savehist-save-hook
+;;           (lambda ()
+;;             (setq kill-ring
+;;                   (mapcar #'substring-no-properties
+;;                           (cl-remove-if-not #'stringp kill-ring)))))
+
+
+;; Auto-Chmod Scripts on Save (Multiple Configs)
+
+;; If you create a file that starts with #! (a shebang line), it should be
+;; executable. But you always forget to chmod +x it, run the script, get
+;; “Permission denied”, curse, go back, chmod, try again. This hook does it
+;; automatically:
+
+(add-hook 'after-save-hook
+          #'executable-make-buffer-file-executable-if-script-p)
+
+;; Save a file with a shebang, and Emacs chmod +xes it for you. One of those things that should arguably be a default.
+
+;; Sane Syntax in re-builder (Multiple Configs)
+
+;; re-builder (M-x re-builder) is an interactive tool for developing regexps –
+;; you type a pattern and see matches highlighted live in the target buffer. The
+;; problem is the default syntax: read. In read syntax, you have to
+;; double-escape everything, so a word boundary is \\< and a group is \\(...\\).
+;; It’s the regexp equivalent of trying to type with oven mitts on.
+
+;; Switch to string syntax and things look like normal Emacs regexps:
+
+(setq reb-re-syntax 'string)
+
+;; Now \< is \< and \(foo\) is \(foo\). Much less painful.
+
+;; See also: If you want live feedback on the regexp structure as you type it
+;; (color-coded groups, character classes, etc.), check out
+;; minibuffer-regexp-mode – a new built-in mode in Emacs 30.
+
+;; Prevent ffap from Pinging Hostnames (Centaur Emacs)
+
+;; Ever had Emacs freeze for a few seconds when you ran find-file-at-point (or a
+;; command that uses it internally)? If the text under point looks like a
+;; hostname – say, something.com in a comment – ffap tries to ping it to check
+;; if it’s reachable. On a slow or firewalled network, that’s a multi-second
+;; hang.
+
+(setq ffap-machine-p-known 'reject)
+
+;; This tells ffap to never try network lookups. If you actually want to open a
+;; remote file, you can type the path explicitly.
+
+;; Proportional Window Resizing (Purcell, Prot)
+
+;; When you split a window with C-x 2 or C-x 3, Emacs halves the current window.
+;; If you already have a multi-window layout, this can produce one awkwardly
+;; tiny window while others stay large. With this setting, all windows in the
+;; frame resize proportionally:
+
+(setq window-combination-resize t)
+
+;; The difference is subtle but makes multi-window layouts feel more balanced
+;; without manual resizing.
+
+;; Reversible C-x 1 (Purcell)
+
+;; C-x 1 (delete-other-windows) is the nuclear option – it nukes your entire
+;; window layout to focus on one buffer. Then you spend the next minute
+;; recreating the layout you just destroyed.
+
+;; With winner-mode and a small wrapper, you can make C-x 1 toggle: press it
+;; once to go single-window, press it again to restore the previous layout:
+
+;; NOTE does not seem to work atm (tabs interfering?)
+(winner-mode +1)
+
+(defun toggle-delete-other-windows ()
+  "Delete other windows in frame if any, or restore previous window config."
+  (interactive)
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+
+(global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
+
+;; Just drop this into your config as-is – it’s self-contained. This is one of
+;; those tricks where once you have it, you can’t imagine going back.
+
+
+;; Faster Mark Popping (Purcell, Centaur, Prot)
+
+;; The mark ring is one of Emacs’s most underused navigation features. Every
+;; time you jump somewhere – isearch, M-<, M->, goto-line, imenu, and many more
+;; – Emacs pushes your old position onto the mark ring. C-u C-SPC pops it,
+;; jumping you back.
+
+;; The annoyance: you need C-u C-SPC every single time. With this setting, after
+;; the first C-u C-SPC you can keep pressing just C-SPC to continue popping:
+
+(setq set-mark-command-repeat-pop t)
+
+;; This pairs beautifully with repeat-mode if you have it enabled (and you
+;; should – see my earlier post on repeat-mode).
+
+;;Recenter After save-place Restores Position (Doom Emacs)
+
+;; save-place-mode is great – it remembers where you were in each file and jumps
+;; back there when you reopen it. The problem is that it can leave your cursor
+;; on the last visible line of the window, which is disorienting. This advice
+;; recenters the view after the jump:
+
+(advice-add 'save-place-find-file-hook :after
+            (lambda (&rest _)
+              (when buffer-file-name (ignore-errors (recenter)))))
+
+;; Small thing, but it makes reopening files feel much more natural.
+
+;; Auto-Select Help Windows (Prot)
+
+;; When you press C-h f or C-h v, Emacs opens the help buffer but leaves your
+;; cursor in the original window. You almost always want to read the help right
+;; away, so you end up pressing C-x o every single time. This fixes it:
+
+(setq help-window-select t)
+
+;; some comments from the article
+
+;; FYI, tab-bar-history-mode is a strict superset of winner-mode that’s tab
+;; aware (one history per tab).
+
+
+
+;; With respect to save-place-mode, there’s a normal hook
+;; save-place-after-find-file-hook, which may be preferable to adding advice.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1120,6 +1381,44 @@
                ("terminfo/65" "terminfo/65/*")
                ("integration" "integration/*")
                (:exclude ".dir-locals.el" "*-tests.el"))))
+
+(use-package vterm
+  :straight t
+  :ensure t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Olivetti Mode
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package olivetti
+  :straight t
+  :ensure t
+  :config
+  (defvar-local jjg/olivetti-saved-text-scale nil)
+  (defvar-local jjg/olivetti-saved-line-numbers nil)
+
+  (defcustom jjg/olivetti-text-scale-bump 4
+    "Number of `text-scale' steps to add when entering `olivetti-mode'."
+    :type 'integer
+    :group 'olivetti)
+
+  (defun jjg/olivetti-mode-extras ()
+    "Bump text scale and hide line numbers with `olivetti-mode'."
+    (if olivetti-mode
+        (progn
+          (setq jjg/olivetti-saved-text-scale text-scale-mode-amount
+                jjg/olivetti-saved-line-numbers
+                (bound-and-true-p display-line-numbers-mode))
+          (text-scale-increase jjg/olivetti-text-scale-bump)
+          (when jjg/olivetti-saved-line-numbers
+            (display-line-numbers-mode -1)))
+      (text-scale-set (or jjg/olivetti-saved-text-scale 0))
+      (when jjg/olivetti-saved-line-numbers
+        (display-line-numbers-mode 1))))
+
+  (add-hook 'olivetti-mode-hook #'jjg/olivetti-mode-extras))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1586,7 +1885,7 @@
   :straight (:type git :host github :repo "manzaltu/claude-code-ide.el")
   :bind ("C-c '" . claude-code-ide-menu)
   :custom
-  (claude-code-ide-terminal-backend 'eat))
+  (claude-code-ide-terminal-backend 'vterm))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1771,6 +2070,31 @@ _~_: modified
   :straight (:type git :host github :repo "xenodium/winpulse")
   :config
   (winpulse-mode +1))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Denote
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package denote
+  :straight t
+  :hook (dired-mode . denote-dired-mode)
+  :bind
+  (("C-c n n" . denote)
+   ("C-c n r" . denote-rename-file)
+   ("C-c n l" . denote-link)
+   ("C-c n b" . denote-backlinks)
+   ("C-c n d" . denote-dired)
+   ("C-c n g" . denote-grep))
+  :config
+  (setq denote-directory (expand-file-name "~/Documents/denote-notes"))
+   ;; Automatically rename Denote buffers when opening them so that
+  ;; instead of their long file name they have, for example, a literal
+  ;; "[D]" followed by the file's title.  Read the docstring of
+  ;; `denote-rename-buffer-format' for how to modify this.
+  (denote-rename-buffer-mode 1))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; End of packages marker
@@ -1938,6 +2262,26 @@ _~_: modified
     ;; Move to the end of the region and insert the string again
     (goto-char (+ end (length input-str)))
     (insert input-str)))
+
+(defun strings-to-sql-in ()
+  "Open a buffer to paste strings (one per line). On completion, generate a SQL IN clause and copy it to the kill ring.
+Use \\[strings-to-sql-in-finish] to finish."
+  (interactive)
+  (let ((buf (get-buffer-create "*sql-in-input*")))
+    (switch-to-buffer buf)
+    (erase-buffer)
+    (local-set-key (kbd "C-c C-c") #'strings-to-sql-in-finish)
+    (message "Paste your strings (one per line), then press C-c C-c to generate the IN clause.")))
+
+(defun strings-to-sql-in-finish ()
+  "Finish collecting strings and copy the SQL IN clause to the kill ring."
+  (interactive)
+  (let* ((strings (split-string (buffer-string) "\n" t "[ \t]+"))
+         (quoted (mapcar (lambda (s) (format "'%s'" s)) strings))
+         (clause (format "in (%s)" (string-join quoted ", "))))
+    (kill-new clause)
+    (kill-buffer)
+    (message "Copied: %s" clause)))
 
 (defun open-sff-at-point ()
   (interactive)

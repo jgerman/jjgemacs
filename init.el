@@ -379,6 +379,93 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; Worktree creation helpers — see denote note 20260528T104123 Step 5.
+;; Three commands using shared infrastructure. Works from primary or
+;; from any existing worktree (container dir is inferred either way).
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun my/worktree--git-sync (&rest args)
+  "Run git with ARGS synchronously, signaling on failure with stderr."
+  (with-temp-buffer
+    (let ((exit (apply #'call-process "git" nil t nil args)))
+      (unless (= exit 0)
+        (user-error "git %s failed (exit %d):\n%s"
+                    (string-join args " ") exit
+                    (buffer-string))))))
+
+(defun my/worktree--container-dir ()
+  "Container dir for worktrees of the current repo (sibling-hybrid layout)."
+  (let* ((root (directory-file-name
+                (or (and (fboundp 'magit-toplevel) (magit-toplevel))
+                    (vc-root-dir)
+                    (user-error "Not in a git repo (default-directory: %s)"
+                                default-directory))))
+         (parent (file-name-directory root))
+         (name (file-name-nondirectory root)))
+    (if (string-suffix-p ".worktrees" (directory-file-name parent))
+        ;; Called from inside a worktree; container is the parent.
+        parent
+      ;; Called from primary; container is sibling-with-suffix.
+      (concat parent name ".worktrees"))))
+
+(defun my/worktree--sanitize (branch)
+  "Flatten / to - in BRANCH for use as a worktree directory name."
+  (replace-regexp-in-string "/" "-" branch))
+
+(defun my/worktree--add (path branch-args)
+  "Run git worktree add at PATH with BRANCH-ARGS, init submodules if
+present, register the project, and open magit."
+  (apply #'my/worktree--git-sync "worktree" "add" path branch-args)
+  (let ((default-directory (file-name-as-directory path)))
+    (when (file-exists-p ".gitmodules")
+      (message "Initializing submodules in %s..." path)
+      (my/worktree--git-sync "submodule" "update" "--init"))
+    (when-let ((proj (project-current)))
+      (project-remember-project proj)))
+  (magit-status path))
+
+(defun my/worktree--gh-pr-head (num)
+  "Return the head branch name for PR NUM via gh, or nil."
+  (with-temp-buffer
+    (when (= 0 (call-process "gh" nil t nil "pr" "view"
+                              (number-to-string num)
+                              "--json" "headRefName"
+                              "-q" ".headRefName"))
+      (string-trim (buffer-string)))))
+
+(defun my/worktree-from-pr (num)
+  "Create a worktree for PR NUM and open magit there."
+  (interactive "nPR number: ")
+  (let* ((head (or (my/worktree--gh-pr-head num)
+                   (user-error "Could not resolve PR %d head branch" num)))
+         (local (format "pr-%d" num))
+         (path (expand-file-name local (my/worktree--container-dir))))
+    (message "Fetching origin/%s..." head)
+    (my/worktree--git-sync "fetch" "origin" head)
+    (my/worktree--add path (list "-b" local (concat "origin/" head)))))
+
+(defun my/worktree-from-branch (branch)
+  "Create a worktree for existing BRANCH (remote-or-local) and open magit."
+  (interactive (list (magit-read-branch-or-commit "Worktree from branch")))
+  (let* ((dir-name (my/worktree--sanitize branch))
+         (path (expand-file-name dir-name (my/worktree--container-dir))))
+    (message "Fetching origin/%s..." branch)
+    (my/worktree--git-sync "fetch" "origin" branch)
+    (my/worktree--add path (list "--track" "-b" branch (concat "origin/" branch)))))
+
+(defun my/worktree-new (branch)
+  "Create a worktree for new BRANCH off origin/main, open magit."
+  (interactive "sNew branch name: ")
+  (let* ((dir-name (my/worktree--sanitize branch))
+         (path (expand-file-name dir-name (my/worktree--container-dir)))
+         (main (or (magit-main-branch) "main")))
+    (message "Fetching origin/%s..." main)
+    (my/worktree--git-sync "fetch" "origin" main)
+    (my/worktree--add path (list "-b" branch (concat "origin/" main)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; Forge
 ;;
 ;; I still don't use this maybe it needs to be removed.

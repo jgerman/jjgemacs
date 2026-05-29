@@ -156,11 +156,11 @@
 	  doom-vibrant-brighter-comments nil
           doom-ir-black-brighter-comments t
           doom-ir-black-brighter-modeline t)
-    ;;(load-theme 'doom-ir-black)
+    (load-theme 'doom-ir-black)
     ))
 
 ;; attempting this for a cleaner look vs doom-ir-black
-(load-theme 'nano-dark t)
+;;(load-theme 'nano-dark t)
 
 ;; Highlight the current paren in bold red
 (require 'paren)
@@ -239,6 +239,83 @@
             (eldoc-print-current-symbol-info)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Ediff configuration
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq ediff-window-setup-function #'ediff-setup-windows-plain)
+
+;; this should get the 2 window layout
+(defvar my/ediff-prev-window-config nil)
+
+(add-hook 'ediff-before-setup-hook
+          (lambda ()
+            (setq my/ediff-prev-window-config (current-window-configuration))
+            (delete-other-windows)))
+
+(add-hook 'ediff-quit-hook
+          (lambda ()
+            (when my/ediff-prev-window-config
+              (set-window-configuration my/ediff-prev-window-config)
+              (setq my/ediff-prev-window-config nil))))
+
+(defun my/magit-ediff-dwim ()
+    "Like `magit-ediff-dwim', but force 2-way for unstaged sections."
+    (interactive)
+    (let* ((section (magit-current-section))
+           (ident (and section (magit-section-ident section)))
+           (in-unstaged (cl-some (lambda (id) (eq (car id) 'unstaged)) ident))
+           (file (magit-file-at-point)))
+      (if (and in-unstaged file)
+          (magit-ediff-show-unstaged file)
+        (call-interactively #'magit-ediff-dwim))))
+
+  (with-eval-after-load 'magit
+    (define-key magit-mode-map (kbd "e") #'my/magit-ediff-dwim))
+
+(setq ediff-split-window-function #'split-window-horizontally)
+
+;; (defun my/magit-diff-vs-main ()
+;;   "Diff current branch against main (merge-base)."
+;;   (interactive)
+;;   (magit-diff-range "main...HEAD" '("--stat" "--no-ext-diff")))
+
+(setq magit-section-initial-visibility-alist
+      '((file . hide)))
+
+(defun my/magit-diff-vs-main ()
+  "Diff current branch against main (merge-base)."
+  (interactive)
+  (magit-diff-range "main...HEAD" '("--stat" "--no-ext-diff"))
+  (when-let ((buf (magit-get-mode-buffer 'magit-diff-mode)))
+    (with-current-buffer buf
+      (goto-char (point-min)))))
+
+(defun my/magit-ediff-file-vs-main ()
+  "Ediff file at point: merge-base(main, HEAD) vs HEAD."
+  (interactive)
+  (let ((file (magit-file-at-point t t))
+        (base (magit-git-string "merge-base" "main" "HEAD")))
+    (magit-ediff-compare base "HEAD" file file)))
+
+(with-eval-after-load 'magit-diff
+  (transient-append-suffix 'magit-diff "r"
+    '("m" "Diff vs main (merge-base)" my/magit-diff-vs-main))
+  (define-key magit-diff-mode-map (kbd "E") #'my/magit-ediff-file-vs-main))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; diff-hl-mode
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package diff-hl
+  :straight t
+  :ensure t
+  :hook ((prog-mode . diff-hl-mode)
+         (magit-pre-refresh . diff-hl-magit-pre-refresh)
+         (magit-post-refresh . diff-hl-magit-post-refresh)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Use dashboard as a landing for new frames
@@ -927,6 +1004,30 @@
   (define-key embark-file-map (kbd "P") #'my/embark-copy-full-path)
   (define-key embark-file-map (kbd "N") #'my/embark-copy-filename))
 
+;; Attempting to get full file paths, ffap zooms in on what exists on disk
+
+(with-eval-after-load 'embark
+    (defun my/embark-org-verbatim-target ()
+      "If point is inside an org =verbatim= or ~code~, target the inner text.
+  Returns bounds that cover only the contents (not the delimiters),
+  so Embark actions receive the value as if the markup weren't there."
+      (when (derived-mode-p 'org-mode)
+        (let ((ctx (org-element-context)))
+          (when (memq (org-element-type ctx) '(verbatim code))
+            (let* ((value (org-element-property :value ctx))
+                   (begin (org-element-property :begin ctx))
+                   (end   (- (org-element-property :end ctx)
+                             (or (org-element-property :post-blank ctx) 0)))
+                   (inner-beg (1+ begin))
+                   (inner-end (1- end))
+                   (type (cond
+                          ((string-match-p "\\`\\(~\\|\\.?/\\)" value) 'file)
+                          ((string-match-p "\\`https?://" value)       'url)
+                          (t 'general))))
+              `(,type ,value ,inner-beg . ,inner-end))))))
+
+    (add-to-list 'embark-target-finders #'my/embark-org-verbatim-target))
+
 ;; is not working getting void on the fn
 ;; (defun my/embark-ace-action (fn)
 ;;   "Run command FN and then switch to the window selected by ace-window."
@@ -1399,7 +1500,7 @@
   (defvar-local jjg/olivetti-saved-text-scale nil)
   (defvar-local jjg/olivetti-saved-line-numbers nil)
 
-  (defcustom jjg/olivetti-text-scale-bump 4
+  (defcustom jjg/olivetti-text-scale-bump 1
     "Number of `text-scale' steps to add when entering `olivetti-mode'."
     :type 'integer
     :group 'olivetti)
@@ -1674,15 +1775,16 @@
   (define-key cider-mode-map (kbd "C-c M-t") #'clj-tap-show))
 
 ;; is this even necessary anymore with eglot/lsp?
-(use-package clj-refactor
-  :straight t)
+;; looks like it isn't, temporary removal to make sure 5/11/2026
+;; (use-package clj-refactor
+;;   :straight t)
 
-(defun my-clj-refactor-hook ()
-  (clj-refactor-mode 1)
-  (yas-minor-mode 1)
-  (cljr-add-keybindings-with-prefix "C-c C-m"))
+;; (defun my-clj-refactor-hook ()
+;;   (clj-refactor-mode 1)
+;;   (yas-minor-mode 1)
+;;   (cljr-add-keybindings-with-prefix "C-c C-m"))
 
-  (add-hook 'clojure-mode-hook #'my-clj-refactor-hook)
+  ;; (add-hook 'clojure-mode-hook #'my-clj-refactor-hook)
 
 ;; set babashka files to open in clojure mode
 (add-to-list 'auto-mode-alist '("\\.bb\\'" . clojure-mode))
@@ -1885,7 +1987,8 @@
   :straight (:type git :host github :repo "manzaltu/claude-code-ide.el")
   :bind ("C-c '" . claude-code-ide-menu)
   :custom
-  (claude-code-ide-terminal-backend 'vterm))
+  (claude-code-ide-terminal-backend 'vterm)
+  (claude-code-ide-use-side-window t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

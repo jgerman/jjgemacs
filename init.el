@@ -176,6 +176,17 @@
   (setq doom-modeline-buffer-file-name-style 'relative-from-project)
   (setq doom-modeline-vcs-max-length 25))
 
+;; Frame title shows the project/worktree leaf so different worktrees of
+;; the same repo are distinguishable at a glance (especially in Cmd-Tab).
+(setq frame-title-format
+      '((:eval (let* ((proj (project-current))
+                      (root (when proj (project-root proj))))
+                 (if root
+                     (file-name-nondirectory (directory-file-name root))
+                   "Emacs")))
+        " — %b"
+        (:eval (if (buffer-modified-p) " ●" ""))))
+
 (use-package hl-line
   :straight t
   :config
@@ -343,6 +354,13 @@
 (use-package magit
   :straight t
   :bind (("C-x g" . magit-status)))
+
+;; Show all worktrees in magit-status (auto-hides when only one exists)
+(with-eval-after-load 'magit
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'magit-insert-worktrees
+                          #'magit-insert-status-headers
+                          t))
 
 
 ;; control how magit opens

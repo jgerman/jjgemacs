@@ -4,7 +4,10 @@ eshell
 places
 recentf
 settings.org~
-straight
+straight/build/
+straight/build-cache.el
+straight/modified/
+straight/repos/
 transient
 projectile-bookmarks.eld
 settings.el

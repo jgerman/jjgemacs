@@ -71,7 +71,7 @@
  ("lispy" . "6f2035f50dd73fb764e172410d813730a19bb054")
  ("llama" . "e4803de8ab85991b6a944430bb4f543ea338636d")
  ("lua-mode" . "2f6b8d7a6317e42c953c5119b0119ddb337e0a5f")
- ("magit" . "ccb7443f232cea9072ebc13da1a1d46efcbecc25")
+ ("magit" . "a9fd4a914ba87da7258fd26946693f282a407885")
  ("magit-delta" . "5fc7dbddcfacfe46d3fd876172ad02a9ab6ac616")
  ("map" . "04ebfe501a50f8a3d2d6b736b88fca93af053746")
  ("marginalia" . "d38041df2c2d175040bbdb1df6e4cc75a75ca4f8")

@@ -365,6 +365,16 @@
                           #'magit-insert-status-headers
                           t))
 
+;; Make the active worktree (and the current branch elsewhere in magit)
+;; visually distinct under doom-ir-black — the default face was too subtle.
+;; Side effect: brightens the current branch everywhere magit shows it,
+;; which is generally desirable.
+(with-eval-after-load 'magit
+  (set-face-attribute 'magit-branch-current nil
+                      :weight 'bold
+                      :foreground "#f5b042"
+                      :background "#2a1f15"))
+
 
 ;; control how magit opens
 (setq magit-display-buffer-function
@@ -416,6 +426,17 @@
   "Flatten / to - in BRANCH for use as a worktree directory name."
   (replace-regexp-in-string "/" "-" branch))
 
+(defun my/worktree--open-status (path)
+  "Open magit-status at PATH in the current window (no split).
+Override `magit-display-buffer-function' locally so that, even when
+the helper is invoked from another magit buffer (e.g. =W= on a PR
+section of magit-status), the new worktree's status replaces the
+current window rather than splitting."
+  (let ((magit-display-buffer-function
+         (lambda (buffer)
+           (display-buffer buffer '(display-buffer-same-window)))))
+    (magit-status path)))
+
 (defun my/worktree--add (path branch-args)
   "Run git worktree add at PATH with BRANCH-ARGS, init submodules if
 present, register the project, and open magit."
@@ -426,7 +447,7 @@ present, register the project, and open magit."
       (my/worktree--git-sync "submodule" "update" "--init"))
     (when-let ((proj (project-current)))
       (project-remember-project proj)))
-  (magit-status path))
+  (my/worktree--open-status path))
 
 (defun my/worktree--gh-pr-head (num)
   "Return the head branch name for PR NUM via gh, or nil."
@@ -458,6 +479,7 @@ Three cases handled:
 - Neither exists → fetch =origin/<head>=, create =pr-NUM= tracking it,
   worktree it."
   (interactive "nPR number: ")
+  (message "Resolving PR #%d head branch via gh..." num)
   (let* ((head (or (my/worktree--gh-pr-head num)
                    (user-error "Could not resolve PR %d head branch" num)))
          (local (format "pr-%d" num))
@@ -469,7 +491,7 @@ Three cases handled:
      (existing-worktree
       (message "Worktree for %s already exists at %s; opening"
                local existing-worktree)
-      (magit-status existing-worktree))
+      (my/worktree--open-status existing-worktree))
      (t
       (message "Fetching origin/%s..." head)
       (my/worktree--git-sync "fetch" "origin" head)
@@ -505,7 +527,7 @@ remote-ref form). Three cases handled transparently:
      (existing-worktree
       (message "Branch %s already worktreed at %s; opening that"
                local-branch existing-worktree)
-      (magit-status existing-worktree))
+      (my/worktree--open-status existing-worktree))
      (local-exists
       (message "Local branch %s exists; worktreeing without -b" local-branch)
       (my/worktree--add path (list local-branch)))

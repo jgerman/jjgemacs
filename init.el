@@ -72,7 +72,7 @@
 (blink-cursor-mode -1)
 ;;(add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-type 'relative)
-(global-display-line-numbers-mode)
+(global-display-line-numbers-mode 1)
 (setq fci-rule-column 100)
 (set-window-scroll-bars (minibuffer-window) nil nil)
 (setq native-comp-async-report-warnings-errors nil)
@@ -312,6 +312,9 @@
     (magit-ediff-compare base "HEAD" file file)))
 
 (with-eval-after-load 'magit-diff
+  ;; Idempotent: remove any existing "m" suffix before appending so
+  ;; re-eval doesn't pile up duplicate entries in the magit-diff transient.
+  (ignore-errors (transient-remove-suffix 'magit-diff "m"))
   (transient-append-suffix 'magit-diff "r"
     '("m" "Diff vs main (merge-base)" my/magit-diff-vs-main))
   (define-key magit-diff-mode-map (kbd "E") #'my/magit-ediff-file-vs-main))
@@ -558,7 +561,7 @@ present, register the project, and open magit."
 
 (use-package which-key
   :straight t)
-(which-key-mode)
+(which-key-mode 1)
 (which-key-setup-minibuffer)
 
 (use-package avy
@@ -612,7 +615,7 @@ present, register the project, and open magit."
 (use-package dirvish
   :straight t
   :config
-  (dirvish-override-dired-mode)
+  (dirvish-override-dired-mode 1)
   (setq dirvish-mode-line-format
         '(:left (sort symlink) :right (omit yank index)))
   (setq dirvish-attributes
@@ -824,9 +827,9 @@ present, register the project, and open magit."
             "C-<backspace>" #'vertico-directory-delete-word
             "RET" #'vertico-directory-enter)
   :init
-  (vertico-mode)
+  (vertico-mode 1)
 ;;  (vertico-buffer-mode)
-  (vertico-multiform-mode)
+  (vertico-multiform-mode 1)
 
   (setq vertico-multiform-commands
 	'((consult-imenu buffer indexed)))
@@ -861,7 +864,7 @@ present, register the project, and open magit."
 (use-package savehist
   :straight t
   :init
-  (savehist-mode))
+  (savehist-mode 1))
 
 ;; A few more useful configurations (I got this from a blog, I've never seen
 ;; use-package emacs before TODO)
@@ -919,7 +922,7 @@ present, register the project, and open magit."
 
   ;; Must be in the :init section of use-package such that the mode gets
   ;; enabled right away. Note that this forces loading the package.
-  (marginalia-mode))
+  (marginalia-mode 1))
 
 ;; Example configuration for Consult TODO go through these bindings figure out
 ;; what they do and whether or not I want them potentially group consult
@@ -1172,7 +1175,7 @@ present, register the project, and open magit."
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
    :init
-   (global-corfu-mode))
+   (global-corfu-mode 1))
 
 (use-package cape
   :straight t
@@ -1384,9 +1387,11 @@ present, register the project, and open magit."
 ;; on the last visible line of the window, which is disorienting. This advice
 ;; recenters the view after the jump:
 
-(advice-add 'save-place-find-file-hook :after
-            (lambda (&rest _)
-              (when buffer-file-name (ignore-errors (recenter)))))
+(defun my/recenter-after-save-place (&rest _)
+  "Recenter the window after `save-place' restores point."
+  (when buffer-file-name (ignore-errors (recenter))))
+
+(advice-add 'save-place-find-file-hook :after #'my/recenter-after-save-place)
 
 ;; Small thing, but it makes reopening files feel much more natural.
 
@@ -1875,6 +1880,32 @@ present, register the project, and open magit."
   (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'clojure-mode-hook #'turn-on-smartparens-strict-mode))
 
+;; Guard helpers for idempotent REPL startup. See denote note
+;; 20260529T191846 item [1]. Use these anywhere init.el wants to spawn
+;; a CIDER REPL on startup so re-evals don't pile up extra JVMs.
+(defun my/cider-repl-for-project-p (project-dir)
+  "Return non-nil if a CIDER REPL is already running for PROJECT-DIR.
+Comparison uses canonicalized directory paths."
+  (let ((target (file-name-as-directory (expand-file-name project-dir))))
+    (seq-some (lambda (buf)
+                (and (buffer-live-p buf)
+                     (with-current-buffer buf
+                       (and (derived-mode-p 'cider-repl-mode)
+                            (string= target
+                                     (file-name-as-directory
+                                      (expand-file-name default-directory)))))))
+              (buffer-list))))
+
+(defun my/cider-jack-in-if-needed (project-dir)
+  "Run `cider-jack-in' for PROJECT-DIR only if no REPL exists there.
+Returns t if a new REPL was started, nil if one was already running."
+  (if (my/cider-repl-for-project-p project-dir)
+      (progn
+        (message "CIDER REPL already running for %s; skipping jack-in" project-dir)
+        nil)
+    (cider-jack-in `(:project-dir ,project-dir))
+    t))
+
 (load (locate-user-emacs-file "clojure-tap-inspector") nil :nomessage)
 (with-eval-after-load 'cider
   (define-key cider-mode-map (kbd "C-c M-t") #'clj-tap-show))
@@ -2219,10 +2250,13 @@ _~_: modified
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package emacs-anywhere
-  :load-path "~/development/nohzafk/emacs-anywhere"
-  :config
-  (server-start))
+;; Not currently using emacs-anywhere; commented out to avoid the
+;; server-start side effect on init re-eval. See denote note
+;; 20260529T191846 item [13]. Re-enable when adopting the workflow.
+;; (use-package emacs-anywhere
+;;   :load-path "~/development/nohzafk/emacs-anywhere"
+;;   :config
+;;   (server-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -2369,9 +2403,8 @@ _~_: modified
 (use-package tradeswell-emacs
   :straight (:local-repo "~/development/tradeswell/tradeswell-emacs")
   :init
-  (cider-jack-in '(:project-dir "~/development/tradeswell/tradeswell-emacs/"))
-  ;; I'm nnot in love with this but it can be cleaned up a different time.
-  (cider-jack-in '(:project-dir "~/development/jgerman/jjgemacs/straight/repos/ejc-sql/"))
+  (my/cider-jack-in-if-needed "~/development/tradeswell/tradeswell-emacs/")
+  (my/cider-jack-in-if-needed "~/development/jgerman/jjgemacs/straight/repos/ejc-sql/")
   :custom
   (tw/greeks-dir "/Users/jgerman/development/tradeswell/data-greeks")
   (tradeswell-snippets-dir "/Users/jgerman/development/tradeswell/tradeswell-emacs/snippets/")
@@ -2441,7 +2474,7 @@ _~_: modified
 
 ;; auto repl for babel?
 ;; how are the ejc-sql buffers auto hidden?
-(cider-jack-in '(:project-dir "/Users/jgerman/development/jgerman/emacs-utility-project/"))
+(my/cider-jack-in-if-needed "/Users/jgerman/development/jgerman/emacs-utility-project/")
 
 (defun wrap-region-with-string ()
   "Prompt for a string and insert it at the beginning and end of the current region."

@@ -17,6 +17,10 @@
 ;; the mode is toggled off, everything reverts.
 ;;
 ;; Multiple modes can be registered independently.
+;;
+;; Re-registering the same mode is idempotent: the previous hook is
+;; removed before the new one is attached, so calling this from your
+;; init.el doesn't pile up duplicate hooks on re-eval.
 
 (defvar-local mode-visual-bell--saved-header-line nil
   "Saved `header-line-format' to restore when the mode is deactivated.")
@@ -29,6 +33,11 @@
 
 (defvar-local mode-visual-bell--active-mode nil
   "The mode symbol currently driving the visual indicator in this buffer.")
+
+(defvar mode-visual-bell--registry nil
+  "Alist of (MODE . HOOK-FN) for previously-registered modes.
+Used to remove the prior hook function on re-registration so
+`mode-visual-bell-register' is idempotent across init re-evals.")
 
 (defun mode-visual-bell--activate (mode label bg fg cursor-color cursor-type)
   "Activate visual indicators for MODE in the current buffer."
@@ -70,7 +79,11 @@ PLIST accepts the following keys:
   :bg           — Background color for the header line (default: \"#4a0020\")
   :fg           — Foreground color for the header line (default: \"#ff6699\")
   :cursor-color — Cursor color when mode is active (default: same as :fg)
-  :cursor-type  — Cursor type when mode is active (default: box)"
+  :cursor-type  — Cursor type when mode is active (default: box)
+
+Re-registering the same MODE removes the previously-installed hook
+before attaching the new one, so this function is idempotent across
+init.el re-evals."
   (let* ((label        (or (plist-get plist :label)
                            (upcase (replace-regexp-in-string
                                     "-mode\\'" ""
@@ -81,8 +94,12 @@ PLIST accepts the following keys:
          (cursor-type  (or (plist-get plist :cursor-type) 'box))
          (hook-sym     (intern (format "%s-hook" mode)))
          (hook-fn      (mode-visual-bell--make-hook
-                        mode label bg fg cursor-color cursor-type)))
-    (add-hook hook-sym hook-fn)))
+                        mode label bg fg cursor-color cursor-type))
+         (existing     (alist-get mode mode-visual-bell--registry)))
+    (when existing
+      (remove-hook hook-sym existing))
+    (add-hook hook-sym hook-fn)
+    (setf (alist-get mode mode-visual-bell--registry) hook-fn)))
 
 (provide 'mode-visual-bell)
 

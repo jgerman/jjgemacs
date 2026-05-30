@@ -437,25 +437,83 @@ present, register the project, and open magit."
                               "-q" ".headRefName"))
       (string-trim (buffer-string)))))
 
+(defun my/worktree--find-by-branch (branch-name)
+  "Return the worktree directory that has BRANCH-NAME checked out, or nil.
+Checks both short and =refs/heads/= forms since magit's representation
+varies depending on the git version."
+  (cl-some (lambda (wt)
+             (let ((wt-branch (nth 2 wt)))
+               (when (and wt-branch
+                          (or (equal wt-branch branch-name)
+                              (equal wt-branch (concat "refs/heads/" branch-name))))
+                 (car wt))))
+           (magit-list-worktrees)))
+
 (defun my/worktree-from-pr (num)
-  "Create a worktree for PR NUM and open magit there."
+  "Create a worktree for PR NUM and open magit there.
+Three cases handled:
+- A worktree for =pr-NUM= already exists → open that worktree.
+- Local =pr-NUM= branch exists but isn't worktreed → force-update it
+  to =origin/<head>= (so we get the latest PR commits) and worktree it.
+- Neither exists → fetch =origin/<head>=, create =pr-NUM= tracking it,
+  worktree it."
   (interactive "nPR number: ")
   (let* ((head (or (my/worktree--gh-pr-head num)
                    (user-error "Could not resolve PR %d head branch" num)))
          (local (format "pr-%d" num))
-         (path (expand-file-name local (my/worktree--container-dir))))
-    (message "Fetching origin/%s..." head)
-    (my/worktree--git-sync "fetch" "origin" head)
-    (my/worktree--add path (list "-b" local (concat "origin/" head)))))
+         (path (expand-file-name local (my/worktree--container-dir)))
+         (existing-worktree (my/worktree--find-by-branch local))
+         (local-exists (magit-git-success "show-ref" "--verify" "--quiet"
+                                          (concat "refs/heads/" local))))
+    (cond
+     (existing-worktree
+      (message "Worktree for %s already exists at %s; opening"
+               local existing-worktree)
+      (magit-status existing-worktree))
+     (t
+      (message "Fetching origin/%s..." head)
+      (my/worktree--git-sync "fetch" "origin" head)
+      (cond
+       (local-exists
+        ;; Branch exists locally but not worktreed; force-update to PR head
+        ;; so we pick up the latest commits, then worktree the branch.
+        (message "Updating existing branch %s to origin/%s" local head)
+        (my/worktree--git-sync "branch" "-f" local (concat "origin/" head))
+        (my/worktree--add path (list local)))
+       (t
+        ;; Fresh: new local branch tracking PR head, worktreed.
+        (my/worktree--add path (list "-b" local (concat "origin/" head)))))))))
 
 (defun my/worktree-from-branch (branch)
-  "Create a worktree for existing BRANCH (remote-or-local) and open magit."
+  "Create a worktree for BRANCH and open magit-status in it.
+BRANCH can be a local name (=foo=) or =origin/= prefixed (magit's
+remote-ref form). Three cases handled transparently:
+- Branch already checked out in a worktree → open that worktree.
+- Local branch exists but isn't worktreed → worktree the existing branch.
+- Only the remote ref exists → fetch, create a local tracking branch,
+  worktree the new branch."
   (interactive (list (magit-read-branch-or-commit "Worktree from branch")))
-  (let* ((dir-name (my/worktree--sanitize branch))
-         (path (expand-file-name dir-name (my/worktree--container-dir))))
-    (message "Fetching origin/%s..." branch)
-    (my/worktree--git-sync "fetch" "origin" branch)
-    (my/worktree--add path (list "--track" "-b" branch (concat "origin/" branch)))))
+  (let* ((local-branch (if (string-prefix-p "origin/" branch)
+                           (substring branch (length "origin/"))
+                         branch))
+         (dir-name (my/worktree--sanitize local-branch))
+         (path (expand-file-name dir-name (my/worktree--container-dir)))
+         (existing-worktree (my/worktree--find-by-branch local-branch))
+         (local-exists (magit-git-success "show-ref" "--verify" "--quiet"
+                                          (concat "refs/heads/" local-branch))))
+    (cond
+     (existing-worktree
+      (message "Branch %s already worktreed at %s; opening that"
+               local-branch existing-worktree)
+      (magit-status existing-worktree))
+     (local-exists
+      (message "Local branch %s exists; worktreeing without -b" local-branch)
+      (my/worktree--add path (list local-branch)))
+     (t
+      (message "Fetching origin/%s..." local-branch)
+      (my/worktree--git-sync "fetch" "origin" local-branch)
+      (my/worktree--add path (list "--track" "-b" local-branch
+                                    (concat "origin/" local-branch)))))))
 
 (defun my/worktree-new (branch)
   "Create a worktree for new BRANCH off origin/main, open magit."
@@ -466,6 +524,93 @@ present, register the project, and open magit."
     (message "Fetching origin/%s..." main)
     (my/worktree--git-sync "fetch" "origin" main)
     (my/worktree--add path (list "-b" branch (concat "origin/" main)))))
+
+;; Symmetric cleanup: when magit removes a worktree, drop it from
+;; project.el's known projects so `C-x p p' doesn't offer stale entries.
+;; The `file-exists-p' check skips the forget when magit refused the
+;; deletion (dirty worktree, user declined force, etc.).
+(defun my/worktree--forget-on-delete (worktree)
+  "Drop WORKTREE from project.el known projects after magit deletes it."
+  ;; project.el may store paths with ~/ abbreviation while magit passes the
+  ;; expanded form to us — match by canonicalized comparison, then pass the
+  ;; original stored path to `project-forget-project' (it uses string equal).
+  (let ((target (file-name-as-directory (expand-file-name worktree))))
+    (unless (file-exists-p target)
+      (when-let ((stored (seq-find
+                          (lambda (root)
+                            (string= target
+                                     (file-name-as-directory
+                                      (expand-file-name root))))
+                          (project-known-project-roots))))
+        (project-forget-project stored)))))
+
+(advice-add 'magit-worktree-delete :after #'my/worktree--forget-on-delete)
+
+;; Skip the "which worktree?" picker when `k' is pressed on a worktree
+;; entry in magit-status — the section at point already identifies the
+;; target. The actual "Delete worktree X?" confirmation inside
+;; `magit-worktree-delete' is unchanged.
+(defun my/magit-worktree-delete-at-point ()
+  "Delete the worktree at point without re-prompting for which worktree.
+Falls back to the interactive picker when no worktree is at point."
+  (interactive)
+  (let ((worktree (magit-section-value-if 'worktree)))
+    (if worktree
+        (magit-worktree-delete worktree)
+      (call-interactively #'magit-worktree-delete))))
+
+(with-eval-after-load 'magit-worktree
+  (define-key magit-worktree-section-map
+              [remap magit-delete-thing]
+              #'my/magit-worktree-delete-at-point))
+
+;; Skip the "which branch?" picker when `k' is pressed on a branch entry
+;; in the refs buffer (y), and refuse to delete remote-tracking refs from
+;; local — deleting `origin/foo' locally doesn't touch the remote and is
+;; almost always a mistake. To delete from the remote, use the push
+;; transient (P); to force-drop a stale local tracking ref, fall back to
+;; `M-x magit-branch-delete'.
+(defun my/magit-branch-delete-at-point ()
+  "Delete the branch at point without re-prompting for which branch.
+Confirms once via yes-or-no-p (magit's normal branch-delete flow puts
+the confirmation in the interactive form, which we bypass by calling
+`magit-branch-delete' with the branch already supplied — so we add the
+prompt back explicitly).
+
+Refuses to delete remote-tracking branches (e.g. =origin/foo=) since
+local deletion of those doesn't affect the remote and is rarely
+intentional. Falls back to the picker when no branch is at point."
+  (interactive)
+  (let ((branch (magit-section-value-if 'branch)))
+    (cond
+     ((null branch)
+      (call-interactively #'magit-branch-delete))
+     ((magit-remote-branch-p branch)
+      (user-error
+       "Refusing to delete remote-tracking branch %s. Use the push transient (P) to delete from the remote, or `M-x magit-branch-delete' to force-drop the local tracking ref"
+       branch))
+     (t
+      (when (yes-or-no-p (format "Delete branch %s? " branch))
+        (magit-branch-delete (list branch)))))))
+
+(with-eval-after-load 'magit-refs
+  (define-key magit-branch-section-map
+              [remap magit-delete-thing]
+              #'my/magit-branch-delete-at-point))
+
+;; Trigger `my/worktree-from-pr' on a forge PR section (W on a PR entry
+;; in magit-status). Section value is a forge-pullreq object; pull the
+;; number off it and reuse the existing helper for the actual work.
+(defun my/forge-worktree-pullreq-at-point ()
+  "Create a worktree for the forge pull request at point."
+  (interactive)
+  (if-let ((pullreq (magit-section-value-if 'pullreq)))
+      (my/worktree-from-pr (oref pullreq number))
+    (user-error "No pull request at point")))
+
+(with-eval-after-load 'forge-pullreq
+  (define-key forge-pullreq-section-map (kbd "W")
+              #'my/forge-worktree-pullreq-at-point))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

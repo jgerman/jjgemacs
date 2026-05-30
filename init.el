@@ -612,6 +612,125 @@ intentional. Falls back to the picker when no branch is at point."
   (define-key forge-pullreq-section-map (kbd "W")
               #'my/forge-worktree-pullreq-at-point))
 
+;; Open the GitHub web view at the file/line under point in a magit-diff
+;; buffer, for the PR matching the current branch (assumes the `pr-N'
+;; naming convention that `my/worktree-from-pr' creates).
+;;
+;; URL form (GitHub current as of 2026):
+;;   https://github.com/<owner>/<repo>/pull/<N>/files#diff-<sha256-of-path><R|L><line>
+;;
+;; Falls back gracefully:
+;; - In a hunk on a real line: full URL with file anchor + line.
+;; - In a file section but not on a hunk line: URL with file anchor only.
+;; - Anywhere else (or missing data): the PR's bare /files page.
+
+(defun my/--pr-num-from-current-branch ()
+  "Return PR number as a string if the current branch matches `pr-N', else nil."
+  (when-let ((branch (magit-get-current-branch)))
+    (when (string-match "^pr-\\([0-9]+\\)$" branch)
+      (match-string 1 branch))))
+
+(defun my/--github-slug-from-remote (&optional remote)
+  "Parse \"owner/repo\" from REMOTE's URL (default `origin'), or return nil."
+  (when-let ((url (magit-get "remote" (or remote "origin") "url")))
+    (when (string-match "github\\.com[:/]\\([^/]+\\)/\\([^/]+?\\)\\(?:\\.git\\)?\\'" url)
+      (concat (match-string 1 url) "/" (match-string 2 url)))))
+
+(defun my/--diff-side-at-point ()
+  "Return 'old if the line at point starts with `-', else 'new.
+Context lines and `+' lines are both treated as new-side."
+  (save-excursion
+    (goto-char (line-beginning-position))
+    (if (looking-at "-") 'old 'new)))
+
+(defun my/magit-browse-hunk-on-github ()
+  "Open the GitHub PR file view for the location under point.
+Most precise when point is on a hunk line — links straight to that
+line on the right (new) or left (old) side of the diff. Less precise
+fallbacks: file anchor only, then bare PR files tab."
+  (interactive)
+  (let* ((pr-num (my/--pr-num-from-current-branch))
+         (slug (my/--github-slug-from-remote))
+         (file (magit-file-at-point))
+         (section (magit-current-section))
+         (in-hunk (and section (eq (oref section type) 'hunk))))
+    (cond
+     ((not slug) (user-error "Could not parse owner/repo from origin remote"))
+     ((not pr-num) (user-error "Current branch isn't pr-N — not in a PR worktree?"))
+     (t
+      (let* ((file-anchor (when file (secure-hash 'sha256 file)))
+             (side (when (and in-hunk file) (my/--diff-side-at-point)))
+             (line (when (and in-hunk file)
+                     (ignore-errors
+                       (magit-diff-hunk-line section (eq side 'old)))))
+             (url
+              (cond
+               ((and file line)
+                (format "https://github.com/%s/pull/%s/files#diff-%s%s%s"
+                        slug pr-num file-anchor
+                        (if (eq side 'old) "L" "R") line))
+               (file
+                (format "https://github.com/%s/pull/%s/files#diff-%s"
+                        slug pr-num file-anchor))
+               (t
+                (format "https://github.com/%s/pull/%s/files" slug pr-num)))))
+        (browse-url url)
+        (message "Opened: %s" url))))))
+
+(with-eval-after-load 'magit-diff
+  (define-key magit-diff-mode-map (kbd "O") #'my/magit-browse-hunk-on-github))
+
+;; Sibling for ediff: invoke from the ediff control buffer (where `n'/`p'
+;; live). Uses ediff's current-difference + the B (new/right) overlay's
+;; end position as the anchor line. URL form mirrors the magit version.
+(defun my/ediff-browse-on-github ()
+  "From the ediff control buffer, open the GitHub PR view at the
+current diff. Uses side B (new/right) and anchors to the last line
+of the current diff hunk."
+  (interactive)
+  (unless (and (eq major-mode 'ediff-mode)
+               (boundp 'ediff-buffer-B) ediff-buffer-B)
+    (user-error "Not in an ediff control buffer"))
+  (let* ((diff-num ediff-current-difference)
+         (overlay (when (>= diff-num 0)
+                    (ediff-get-diff-overlay diff-num 'B)))
+         (line (when overlay
+                 (with-current-buffer ediff-buffer-B
+                   (line-number-at-pos
+                    (max (point-min) (1- (overlay-end overlay)))))))
+         (full-path (or (buffer-local-value 'magit-buffer-file-name
+                                            ediff-buffer-B)
+                        (buffer-file-name ediff-buffer-B)))
+         (root (with-current-buffer ediff-buffer-B
+                 (or (and (fboundp 'magit-toplevel) (magit-toplevel))
+                     (vc-root-dir))))
+         (file (when (and full-path root)
+                 (file-relative-name full-path root)))
+         (pr-num (with-current-buffer ediff-buffer-B
+                   (my/--pr-num-from-current-branch)))
+         (slug (with-current-buffer ediff-buffer-B
+                 (my/--github-slug-from-remote))))
+    (cond
+     ((not slug) (user-error "Could not parse owner/repo from origin"))
+     ((not pr-num) (user-error "Current branch isn't pr-N"))
+     ((not file) (user-error "Could not determine file path"))
+     (t
+      (let* ((anchor (secure-hash 'sha256 file))
+             (url (if line
+                      (format "https://github.com/%s/pull/%s/files#diff-%sR%s"
+                              slug pr-num anchor line)
+                    (format "https://github.com/%s/pull/%s/files#diff-%s"
+                            slug pr-num anchor))))
+        (browse-url url)
+        (message "Opened: %s" url))))))
+
+(defun my/ediff-setup-keys ()
+  "Add custom keybindings to the ediff control buffer keymap.
+Called via `ediff-keymap-setup-hook' so the map exists when we bind."
+  (define-key ediff-mode-map (kbd "O") #'my/ediff-browse-on-github))
+
+(add-hook 'ediff-keymap-setup-hook #'my/ediff-setup-keys)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Forge

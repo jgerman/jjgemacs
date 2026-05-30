@@ -1,0 +1,175 @@
+#+title: Worktree workflow
+
+Working in this config you have a small set of helpers built on top of
+=git worktree=, magit, forge, and project.el. The intent: pull down PRs,
+experiment on branches, or run hotfixes without disturbing your in-flight
+work in the primary checkout.
+
+* Commands quick reference
+
+Custom commands added by this config:
+
+| Command / Key                       | Where                                | What it does                                                                                                                                                                                          |
+|-------------------------------------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| =M-x my/worktree-from-pr=           | anywhere in a git repo               | Resolve PR's head via =gh=, fetch it, create a =pr-<num>= branch in a new worktree, open magit-status there. Reuses an existing worktree, updates an already-local =pr-<num>= branch, or creates fresh. |
+| =M-x my/worktree-from-branch=       | anywhere in a git repo               | Worktree an existing branch. Accepts local names (=foo=) or remote refs (=origin/foo=). Opens the existing worktree if one exists; worktrees an existing local branch as-is; otherwise creates a tracking branch. |
+| =M-x my/worktree-new=               | anywhere in a git repo               | Create a brand-new branch off =origin/main= in a new worktree.                                                                                                                                        |
+| =W= on a forge pull-request section | magit-status                         | Shortcut for =my/worktree-from-pr= on the PR at point.                                                                                                                                                |
+| =k= on a worktree entry             | magit-status "Worktrees" section     | Delete that worktree directly (no "which one?" picker). Confirmation prompt for the deletion itself is unchanged.                                                                                     |
+| =k= on a branch entry               | magit refs buffer (=y=)              | Delete that branch directly with a =yes-or-no-p= confirmation. Refuses to delete remote-tracking refs (=origin/foo=); to drop a branch on the remote use the push transient (=P=).                    |
+| =d m=                               | any magit buffer                     | Diff current branch against =origin/main= (after a fresh fetch). Stat header, per-file collapsed sections, cursor jumps to top so each invocation starts fresh.                                       |
+| =E= in the magit-diff buffer        | on a file section                    | Ediff that file against =origin/main='s version. No prompts.                                                                                                                                          |
+| =O= in the magit-diff buffer        | on a hunk line                       | Open the corresponding PR location on GitHub in the browser, anchored to the file and line under point. Falls back gracefully. Requires the current branch to be =pr-N=.                              |
+| =O= in the ediff control buffer     | during an ediff session              | Same idea for ediff. Opens GitHub at the file + last line of the current diff hunk (side B, new/right). Pairs with =n=/=p= navigation.                                                                |
+
+Stock magit / forge commands that you'll lean on regularly:
+
+| Key / Command       | What it does                                                                                                                                                                |
+|---------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| =C-x g=             | =magit-status=.                                                                                                                                                             |
+| =Z=                 | Worktree transient.                                                                                                                                                         |
+| =Z b=               | Checkout an existing branch in a new worktree (magit's version of "from-branch").                                                                                           |
+| =Z c=               | Branch and checkout in a new worktree (magit's "new branch + worktree").                                                                                                    |
+| =Z n=               | =forge-checkout-worktree= — forge's built-in PR-to-worktree. Similar to our =my/worktree-from-pr= but uses forge's path convention and doesn't auto-register the project; prefer =W= on a PR section. |
+| =Z g=               | Visit a worktree (jumps to its magit-status).                                                                                                                               |
+| =Z m=               | Move a worktree.                                                                                                                                                            |
+| =y=                 | =magit-show-refs= — branches view (local + remotes).                                                                                                                        |
+| =f a=               | Fetch all remotes.                                                                                                                                                          |
+| =M-x forge-pull=    | Pull issues/PRs into forge's local DB. Run periodically; magit-status picks up new entries.                                                                                 |
+| =N m=               | =forge-topics-menu= — filter the topics shown in the current buffer.                                                                                                        |
+
+* Repo layout
+
+Worktrees live in a per-repo sibling container, not nested inside the
+primary checkout. For a repo at =~/projects/myrepo/= you get:
+
+#+begin_example
+~/projects/
+├── myrepo/                            ← primary
+└── myrepo.worktrees/
+    ├── pr-1234/                       ← created by my/worktree-from-pr 1234
+    ├── feature-foo/                   ← created by my/worktree-from-branch
+    └── scratch-foo/                   ← created by my/worktree-new scratch-foo
+#+end_example
+
+Rationale: keeps tooling that walks the project (rg, find, LSP) from
+descending into worktrees while still being self-contained per repo.
+
+Branch names that contain slashes are flattened — =feature/foo= becomes
+the directory =feature-foo= for cleaner =ls= and tab-completion.
+
+* Workflows
+
+** Reviewing a PR
+
+1. =M-x forge-pull= (occasionally, to refresh open PRs).
+2. =C-x g= to open magit-status of the primary.
+3. Scroll to the "Pull requests" section.
+4. =W= on the PR you want to review → spawns the worktree, opens
+   magit-status in it.
+5. =d m= to see the diff against =origin/main=.
+6. =TAB= to expand a file's hunks, =E= on the file to ediff that file
+   for deeper inspection.
+7. To comment on a specific line, hit =O= from the magit-diff hunk
+   (or from the ediff control buffer with the desired diff
+   navigated to via =n=/=p=). Browser opens at that exact location;
+   leave the comment there.
+8. Back in magit-status of the worktree, =k= on the worktree entry
+   in the "Worktrees" section when done — deletes the worktree, drops
+   the project from project.el's known list automatically.
+
+** Pulling down a branch to experiment
+
+For someone else's WIP branch you want to play with locally:
+
+1. =M-x my/worktree-from-branch= — accepts completion over all refs
+   including remote-only ones (=origin/foo=).
+2. Magit-status opens in the new worktree.
+3. Hack as needed. Commits made here land on the branch, visible in
+   primary's git log too (single shared object store).
+4. =k= on the worktree entry when done.
+
+** Starting a new branch in isolation
+
+For a hotfix or quick experiment that shouldn't disturb your
+in-flight feature work:
+
+1. =M-x my/worktree-new= → enter a branch name.
+2. Branch is created off =origin/main= (always fetched fresh),
+   worktree pops open.
+3. Work / commit / push as normal.
+4. Clean up the worktree when done; if the branch is merged or
+   abandoned, also drop the branch (=y= to refs view, =k= on the
+   branch entry).
+
+** Stacking branches (non-main bases)
+
+The helpers don't directly create worktrees off non-main bases. For
+a stacked PR, use =my/worktree-from-branch= on the existing base
+branch (if it's pushed), then create your follow-up branch from
+inside the worktree (e.g. =magit-branch-create= =b c=).
+
+** Cleanup discipline
+
+No automated stale-worktree detector. Periodically:
+
+- In magit-status, glance at the "Worktrees" section. Anything you
+  don't recognize is fair game.
+- =k= on the entry removes the worktree directory and drops the
+  project from project.el.
+- For branches whose worktree is already gone, switch to refs (=y=)
+  and =k= on the local branch.
+
+* Customizations active in this config
+
+- *Frame title* shows the project leaf so different worktrees of
+  the same repo are distinguishable in macOS title bars and
+  =Cmd-Tab= previews. Example: =myrepo — README.md= vs
+  =pr-1234 — README.md=.
+- *=magit-status= "Worktrees" section* — auto-inserted when more
+  than one worktree exists. Each entry is a section with =RET=
+  (visit) and =k= (delete) bindings.
+- *=d m= diff helper* is wired into magit's diff transient (=d=).
+  Same flow as other diff commands; configurable via the transient's
+  =-s= (=--stat=), refinement, etc.
+- *Project auto-register on worktree creation*: each new worktree
+  gets added to project.el's known-projects list automatically.
+  Means =C-x p p= lists worktrees the moment they exist; no manual
+  registration step.
+- *Project auto-forget on worktree deletion*: an =:after= advice on
+  =magit-worktree-delete= removes the worktree's entry from
+  project.el once the deletion succeeds. Stale =C-x p p= entries
+  that piled up before this advice was added can be bulk-cleaned
+  with =M-x project-forget-zombie-projects=.
+
+* When to reach for stock magit/forge instead
+
+The custom helpers cover the common workflow. Reach past them when:
+
+- You want a worktree at a non-default path → =Z b= / =Z c= and
+  supply the directory yourself.
+- You want forge's exact PR-to-worktree behavior (e.g. its path
+  convention) → =Z n= invokes =forge-checkout-worktree=.
+- You want to delete a remote-tracking ref from local (=origin/foo=
+  showing up after the remote already deleted it) → =M-x
+  magit-branch-delete= bypasses the =k=-at-point guard.
+
+* Troubleshooting
+
+- *"already checked out at <worktree>"* when creating a worktree:
+  the branch is in use somewhere. =my/worktree-from-branch= and
+  =my/worktree-from-pr= detect this and just open the existing
+  worktree.
+- *"a branch named 'pr-N' already exists"* with
+  =my/worktree-from-pr=: shouldn't happen — the helper now
+  force-updates the existing local branch from =origin/<head>= and
+  worktrees it. If it does fire, the local branch is likely checked
+  out somewhere unexpected.
+- *=C-x p p= shows worktrees that no longer exist*: run =M-x
+  project-forget-zombie-projects= to clean them up.
+- *Forge "Cannot determine username"*: set =git config --global
+  github.user <your-username>=.
+- *Forge "Required Github token does not exist"*: forge looks for
+  an authinfo entry like =machine api.github.com login <user>^forge
+  password <token>=. Easiest source: =gh auth token= if you already
+  use the =gh= CLI.
